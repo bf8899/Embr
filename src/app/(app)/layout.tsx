@@ -28,6 +28,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 Upload
               </Link>
             )}
+            {profile.is_admin && (
+              <Link href="/admin" className="text-ember-2 hover:text-ember-1">
+                Admin
+              </Link>
+            )}
           </nav>
           <div className="ml-auto flex items-center gap-4 text-sm">
             <WalletBadge />
@@ -39,6 +44,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </form>
           </div>
         </header>
+        {profile.suspended && (
+          <div className="border-b border-ember-3/30 bg-ember-3/10 px-6 py-3 text-center text-sm text-ember-3">
+            Your account is suspended. You can browse, but uploading, commenting,
+            and tipping are disabled.
+          </div>
+        )}
         <main className="flex-1 px-6 py-10">{children}</main>
       </div>
     </WalletProvider>

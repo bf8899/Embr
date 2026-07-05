@@ -10,3 +10,7 @@ export type Comment = Tables<"comments">;
 export type Like = Tables<"likes">;
 export type Follow = Tables<"follows">;
 export type Tip = Tables<"tips">;
+
+export type Report = Tables<"reports">;
+export type ReportTarget = Enums<"report_target">;
+export type ReportStatus = Enums<"report_status">;

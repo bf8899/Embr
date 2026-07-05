@@ -2,12 +2,13 @@
 
 Video worth burning for. A new home for video, built on a tip economy.
 
-This repo implements **Phases A–E** of [the build plan](Legal/ember-build-plan.md):
+This repo implements **Phases A–F** of [the build plan](Legal/ember-build-plan.md):
 auth and profiles; video upload, processing status, a tiles browse grid, and playback;
 the social layer — comments, likes, follows, and a full-screen vertical Flow mode;
 non-monetary tipping — a hold-to-ember mechanic, a demo wallet, per-video
-leaderboards, and viewer-to-viewer comment tipping; and feed intelligence — a
-tag-weighted "For you" ranking with search and tag filtering.
+leaderboards, and viewer-to-viewer comment tipping; feed intelligence — a
+tag-weighted "For you" ranking with search and tag filtering; and moderation —
+reporting, an admin review queue, content removal, and account suspension.
 
 ## Stack
 
@@ -58,6 +59,14 @@ npx supabase db push
   visible for viewers with no history yet. The dashboard and Flow both default
   to this order (toggle to "Newest"), with title search and clickable tag
   filters.
+- Moderation: viewers can report videos, comments, or accounts. Admins
+  (`profiles.is_admin`) get a review queue at `/admin` to remove content
+  (videos → `removed`, comments soft-deleted) or suspend accounts. Enforcement
+  is at the RLS layer — suspended creators' videos are hidden and their
+  uploads/comments/tips are blocked, and the `is_admin`/`suspended` flags can
+  only be changed by the admin-gated `SECURITY DEFINER` functions (column
+  UPDATE is revoked from the app roles). Grant your first admin with:
+  `update public.profiles set is_admin = true where handle = '<your-handle>';`
 
 Video hosting sits behind `src/lib/video/provider.ts`, currently backed by Supabase
 Storage (50 MB/file on the free tier). Swapping in Mux or Cloudflare Stream later

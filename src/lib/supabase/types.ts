@@ -45,6 +45,7 @@ export type Database = {
           created_at: string
           id: string
           parent_comment_id: string | null
+          removed: boolean
           user_id: string
           video_id: string
         }
@@ -53,6 +54,7 @@ export type Database = {
           created_at?: string
           id?: string
           parent_comment_id?: string | null
+          removed?: boolean
           user_id: string
           video_id: string
         }
@@ -61,6 +63,7 @@ export type Database = {
           created_at?: string
           id?: string
           parent_comment_id?: string | null
+          removed?: boolean
           user_id?: string
           video_id?: string
         }
@@ -164,8 +167,10 @@ export type Database = {
           ember_balance: number
           handle: string
           id: string
+          is_admin: boolean
           onboarded: boolean
           role: Database["public"]["Enums"]["profile_role"]
+          suspended: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -176,8 +181,10 @@ export type Database = {
           ember_balance?: number
           handle: string
           id: string
+          is_admin?: boolean
           onboarded?: boolean
           role?: Database["public"]["Enums"]["profile_role"]
+          suspended?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -188,10 +195,63 @@ export type Database = {
           ember_balance?: number
           handle?: string
           id?: string
+          is_admin?: boolean
           onboarded?: boolean
           role?: Database["public"]["Enums"]["profile_role"]
+          suspended?: boolean
         }
         Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason: string
+          reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["report_target"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tips: {
         Row: {
@@ -316,6 +376,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_remove_comment: { Args: { p_comment_id: string }; Returns: undefined }
+      admin_remove_video: { Args: { p_video_id: string }; Returns: undefined }
+      admin_resolve_report: {
+        Args: {
+          p_report_id: string
+          p_status: Database["public"]["Enums"]["report_status"]
+        }
+        Returns: undefined
+      }
+      admin_set_suspended: {
+        Args: { p_suspended: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      current_user_is_admin: { Args: Record<string, never>; Returns: boolean }
       increment_view_count: { Args: { video_id: string }; Returns: undefined }
       send_tip: {
         Args: { p_amount: number; p_comment_id?: string; p_video_id?: string }
@@ -333,6 +407,8 @@ export type Database = {
     }
     Enums: {
       profile_role: "viewer" | "creator" | "both"
+      report_status: "open" | "actioned" | "dismissed"
+      report_target: "video" | "comment" | "user"
       video_status: "processing" | "live" | "removed"
     }
     CompositeTypes: {
@@ -465,6 +541,8 @@ export const Constants = {
   public: {
     Enums: {
       profile_role: ["viewer", "creator", "both"],
+      report_status: ["open", "actioned", "dismissed"],
+      report_target: ["video", "comment", "user"],
       video_status: ["processing", "live", "removed"],
     },
   },

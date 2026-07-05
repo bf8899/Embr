@@ -33,3 +33,11 @@ export const requireProfile = cache(async (): Promise<Profile> => {
 
   return profile;
 });
+
+export const requireAdmin = cache(async (): Promise<Profile> => {
+  const profile = await requireProfile();
+  if (!profile.is_admin) {
+    redirect("/dashboard");
+  }
+  return profile;
+});

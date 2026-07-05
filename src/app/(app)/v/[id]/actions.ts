@@ -87,6 +87,34 @@ export async function sendTip(
   return { balance: data as number };
 }
 
+const ReportSchema = z.object({
+  targetType: z.enum(["video", "comment", "user"]),
+  targetId: z.uuid(),
+  reason: z.string().trim().min(1, { error: "Add a reason." }).max(500),
+});
+
+export async function submitReport(
+  input: z.input<typeof ReportSchema>
+): Promise<{ ok: true } | { error: string }> {
+  const userId = await requireUserId();
+
+  const validated = ReportSchema.safeParse(input);
+  if (!validated.success) {
+    return { error: validated.error.issues[0].message };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("reports").insert({
+    reporter_id: userId,
+    target_type: validated.data.targetType,
+    target_id: validated.data.targetId,
+    reason: validated.data.reason,
+  });
+  if (error) return { error: "Couldn't submit that report." };
+
+  return { ok: true };
+}
+
 const CommentSchema = z.object({
   videoId: z.uuid(),
   body: z.string().trim().min(1, { error: "Say something first." }).max(1000),

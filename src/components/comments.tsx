@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { postComment } from "@/app/(app)/v/[id]/actions";
 import { Button } from "@/components/ui/button";
 import { TipButton } from "@/components/tip-button";
+import { ReportButton } from "@/components/report-button";
 
 export type CommentView = {
   id: string;
@@ -99,11 +100,14 @@ export function Comments({
                 </span>
                 <span className="text-ink-faint">{timeAgo(c.created_at)}</span>
                 {currentUserId && c.user_id !== currentUserId ? (
-                  <TipButton
-                    target={{ commentId: c.id }}
-                    variant="comment"
-                    initialTotal={tipTotals[c.id] ?? 0}
-                  />
+                  <>
+                    <TipButton
+                      target={{ commentId: c.id }}
+                      variant="comment"
+                      initialTotal={tipTotals[c.id] ?? 0}
+                    />
+                    <ReportButton targetType="comment" targetId={c.id} />
+                  </>
                 ) : (
                   (tipTotals[c.id] ?? 0) > 0 && (
                     <span className="inline-flex items-center gap-1 text-xs text-ember-1">

@@ -8,6 +8,7 @@ import type { VideoWithCreator } from "@/components/video-tile";
 import { LikeButton } from "@/components/like-button";
 import { FollowButton } from "@/components/follow-button";
 import { TipButton } from "@/components/tip-button";
+import { ReportButton } from "@/components/report-button";
 import { TipLeaderboard, type LeaderRow } from "@/components/tip-leaderboard";
 import { Comments, type CommentView } from "@/components/comments";
 import { ViewPing } from "./view-ping";
@@ -185,11 +186,21 @@ export default async function WatchPage({
         tipTotals={tipTotals}
       />
 
-      <p className="mt-8 text-sm">
-        <Link href="/dashboard" className="text-ink-dim hover:text-ink">
+      <div className="mt-8 flex items-center justify-between">
+        <Link href="/dashboard" className="text-sm text-ink-dim hover:text-ink">
           ← Back to browse
         </Link>
-      </p>
+        {user && !isOwner && (
+          <div className="flex items-center gap-4">
+            <ReportButton targetType="video" targetId={video.id} label="Report video" />
+            <ReportButton
+              targetType="user"
+              targetId={video.creator_id}
+              label={`Report @${video.profiles?.handle ?? "creator"}`}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
