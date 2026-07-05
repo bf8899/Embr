@@ -51,6 +51,7 @@ export default async function FlowPage() {
     src: provider.playbackUrl(v.video_asset_id),
     poster: v.thumbnail_url,
     likeCount: v.like_count,
+    emberCount: v.ember_count,
     liked: likedSet.has(v.id),
     following: followingSet.has(v.creator_id),
     isOwn: user?.id === v.creator_id,

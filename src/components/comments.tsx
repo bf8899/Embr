@@ -4,11 +4,13 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { postComment } from "@/app/(app)/v/[id]/actions";
 import { Button } from "@/components/ui/button";
+import { TipButton } from "@/components/tip-button";
 
 export type CommentView = {
   id: string;
   body: string;
   created_at: string;
+  user_id: string;
   profiles: { handle: string; display_name: string | null } | null;
 };
 
@@ -30,9 +32,14 @@ function timeAgo(iso: string): string {
 export function Comments({
   videoId,
   comments,
+  currentUserId,
+  tipTotals,
 }: {
   videoId: string;
   comments: CommentView[];
+  currentUserId: string | null;
+  // comment id -> total embers tipped, for comments that have any.
+  tipTotals: Record<string, number>;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -85,12 +92,28 @@ export function Comments({
                 .charAt(0)
                 .toUpperCase()}
             </div>
-            <div>
-              <p className="text-sm">
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-sm">
                 <span className="font-medium text-ink">
                   @{c.profiles?.handle ?? "unknown"}
-                </span>{" "}
+                </span>
                 <span className="text-ink-faint">{timeAgo(c.created_at)}</span>
+                {currentUserId && c.user_id !== currentUserId ? (
+                  <TipButton
+                    target={{ commentId: c.id }}
+                    variant="comment"
+                    initialTotal={tipTotals[c.id] ?? 0}
+                  />
+                ) : (
+                  (tipTotals[c.id] ?? 0) > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs text-ember-1">
+                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
+                        <path d="M12 2c.4 3-1.6 4.4-2.8 5.9C8 9.4 7.2 10.8 7.2 13a4.8 4.8 0 0 0 9.6.3c0-2.2-1-3.6-2-5-.5.9-1 1.4-1.8 1.7.6-2.6-.2-5.6-1-8z" />
+                      </svg>
+                      {tipTotals[c.id]}
+                    </span>
+                  )
+                )}
               </p>
               <p className="mt-0.5 whitespace-pre-wrap text-sm text-ink-dim">
                 {c.body}

@@ -55,6 +55,9 @@ export function VideoTile({ video }: { video: VideoWithCreator }) {
       <p className="mt-0.5 text-xs text-ink-faint">
         @{video.profiles?.handle ?? "unknown"} · {formatViews(video.view_count)}{" "}
         views · {formatViews(video.like_count)} ♥
+        {video.ember_count > 0 && (
+          <span className="text-ember-1"> · {formatViews(video.ember_count)} 🔥</span>
+        )}
       </p>
     </div>
   );

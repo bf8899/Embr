@@ -5,6 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { LikeButton } from "@/components/like-button";
 import { FollowButton } from "@/components/follow-button";
+import { TipButton } from "@/components/tip-button";
+import { WalletBadge } from "@/components/wallet";
 
 export type FlowVideo = {
   id: string;
@@ -14,6 +16,7 @@ export type FlowVideo = {
   src: string;
   poster: string | null;
   likeCount: number;
+  emberCount: number;
   liked: boolean;
   following: boolean;
   isOwn: boolean;
@@ -63,15 +66,18 @@ export function FlowFeed({
     <div className="fixed inset-0 z-50 bg-void">
       {/* top bar */}
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4">
-        <Link
-          href="/dashboard"
-          aria-label="Back to browse"
-          className="grid h-10 w-10 place-items-center rounded-full bg-black/40 text-ink backdrop-blur hover:bg-black/60"
-        >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard"
+            aria-label="Back to browse"
+            className="grid h-10 w-10 place-items-center rounded-full bg-black/40 text-ink backdrop-blur hover:bg-black/60"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </Link>
+          {signedIn && <WalletBadge />}
+        </div>
         <button
           onClick={() => setMuted((m) => !m)}
           aria-label={muted ? "Unmute" : "Mute"}
@@ -122,6 +128,13 @@ export function FlowFeed({
                   initialCount={v.likeCount}
                   variant="rail"
                 />
+                {!v.isOwn && (
+                  <TipButton
+                    target={{ videoId: v.id }}
+                    variant="rail"
+                    initialTotal={v.emberCount}
+                  />
+                )}
                 {!v.isOwn && (
                   <FollowButton
                     creatorId={v.creatorId}

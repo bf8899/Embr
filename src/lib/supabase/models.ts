@@ -9,3 +9,4 @@ export type VideoStatus = Enums<"video_status">;
 export type Comment = Tables<"comments">;
 export type Like = Tables<"likes">;
 export type Follow = Tables<"follows">;
+export type Tip = Tables<"tips">;

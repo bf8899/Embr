@@ -161,6 +161,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string
+          ember_balance: number
           handle: string
           id: string
           onboarded: boolean
@@ -172,6 +173,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email: string
+          ember_balance?: number
           handle: string
           id: string
           onboarded?: boolean
@@ -183,12 +185,75 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string
+          ember_balance?: number
           handle?: string
           id?: string
           onboarded?: boolean
           role?: Database["public"]["Enums"]["profile_role"]
         }
         Relationships: []
+      }
+      tips: {
+        Row: {
+          amount: number
+          comment_id: string | null
+          created_at: string
+          id: string
+          is_demo_currency: boolean
+          recipient_id: string
+          sender_id: string
+          video_id: string | null
+        }
+        Insert: {
+          amount: number
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          is_demo_currency?: boolean
+          recipient_id: string
+          sender_id: string
+          video_id?: string | null
+        }
+        Update: {
+          amount?: number
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          is_demo_currency?: boolean
+          recipient_id?: string
+          sender_id?: string
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tips_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tips_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tips_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tips_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       videos: {
         Row: {
@@ -252,6 +317,19 @@ export type Database = {
     }
     Functions: {
       increment_view_count: { Args: { video_id: string }; Returns: undefined }
+      send_tip: {
+        Args: { p_amount: number; p_comment_id?: string; p_video_id?: string }
+        Returns: number
+      }
+      video_tip_leaderboard: {
+        Args: { p_limit?: number; p_video_id: string }
+        Returns: {
+          display_name: string
+          handle: string
+          sender_id: string
+          total: number
+        }[]
+      }
     }
     Enums: {
       profile_role: "viewer" | "creator" | "both"

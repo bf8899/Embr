@@ -7,6 +7,8 @@ import { formatDuration, formatViews } from "@/lib/format";
 import type { VideoWithCreator } from "@/components/video-tile";
 import { LikeButton } from "@/components/like-button";
 import { FollowButton } from "@/components/follow-button";
+import { TipButton } from "@/components/tip-button";
+import { TipLeaderboard, type LeaderRow } from "@/components/tip-leaderboard";
 import { Comments, type CommentView } from "@/components/comments";
 import { ViewPing } from "./view-ping";
 
@@ -49,39 +51,53 @@ export default async function WatchPage({
   const src = provider.playbackUrl(video.video_asset_id);
   const duration = formatDuration(video.duration_seconds);
 
-  // Social state for the signed-in viewer + the comment thread.
-  const [likeRes, followRes, commentsRes, followerCountRes] = await Promise.all([
-    user
-      ? supabase
-          .from("likes")
-          .select("video_id")
-          .eq("video_id", video.id)
-          .eq("user_id", user.id)
-          .maybeSingle()
-      : Promise.resolve({ data: null }),
-    user && !isOwner
-      ? supabase
-          .from("follows")
-          .select("creator_id")
-          .eq("creator_id", video.creator_id)
-          .eq("follower_id", user.id)
-          .maybeSingle()
-      : Promise.resolve({ data: null }),
-    supabase
-      .from("comments")
-      .select("id, body, created_at, profiles(handle, display_name)")
-      .eq("video_id", video.id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("follows")
-      .select("*", { count: "exact", head: true })
-      .eq("creator_id", video.creator_id),
-  ]);
+  // Social state for the signed-in viewer + the comment thread + tip data.
+  const [likeRes, followRes, commentsRes, followerCountRes, leaderRes, commentTipsRes] =
+    await Promise.all([
+      user
+        ? supabase
+            .from("likes")
+            .select("video_id")
+            .eq("video_id", video.id)
+            .eq("user_id", user.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      user && !isOwner
+        ? supabase
+            .from("follows")
+            .select("creator_id")
+            .eq("creator_id", video.creator_id)
+            .eq("follower_id", user.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      supabase
+        .from("comments")
+        .select("id, body, created_at, user_id, profiles(handle, display_name)")
+        .eq("video_id", video.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("creator_id", video.creator_id),
+      supabase.rpc("video_tip_leaderboard", { p_video_id: video.id }),
+      supabase
+        .from("tips")
+        .select("comment_id, amount")
+        .eq("video_id", video.id)
+        .not("comment_id", "is", null),
+    ]);
 
   const liked = !!likeRes.data;
   const following = !!followRes.data;
   const comments = (commentsRes.data ?? []) as CommentView[];
   const followerCount = followerCountRes.count ?? 0;
+  const leaders = (leaderRes.data ?? []) as LeaderRow[];
+
+  // Fold the raw comment-tip rows into a { commentId: total } map.
+  const tipTotals: Record<string, number> = {};
+  for (const t of commentTipsRes.data ?? []) {
+    if (t.comment_id) tipTotals[t.comment_id] = (tipTotals[t.comment_id] ?? 0) + t.amount;
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -96,9 +112,18 @@ export default async function WatchPage({
       />
 
       <h1 className="mt-4 font-display text-xl font-bold">{video.title}</h1>
-      <p className="mt-1 text-sm text-ink-faint">
-        {formatViews(video.view_count)} views
-        {duration && <> · {duration}</>}
+      <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-ink-faint">
+        <span>{formatViews(video.view_count)} views</span>
+        {duration && <span>· {duration}</span>}
+        {video.ember_count > 0 && (
+          <span className="inline-flex items-center gap-1 text-ember-1">
+            ·
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden>
+              <path d="M12 2c.4 3-1.6 4.4-2.8 5.9C8 9.4 7.2 10.8 7.2 13a4.8 4.8 0 0 0 9.6.3c0-2.2-1-3.6-2-5-.5.9-1 1.4-1.8 1.7.6-2.6-.2-5.6-1-8z" />
+            </svg>
+            {formatViews(video.ember_count)} embers
+          </span>
+        )}
       </p>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-y border-line py-4">
@@ -118,6 +143,9 @@ export default async function WatchPage({
               initialLiked={liked}
               initialCount={video.like_count}
             />
+          )}
+          {user && !isOwner && (
+            <TipButton target={{ videoId: video.id }} variant="inline" />
           )}
           {user && !isOwner && (
             <FollowButton
@@ -147,7 +175,14 @@ export default async function WatchPage({
         </div>
       )}
 
-      <Comments videoId={video.id} comments={comments} />
+      <TipLeaderboard rows={leaders} />
+
+      <Comments
+        videoId={video.id}
+        comments={comments}
+        currentUserId={user?.id ?? null}
+        tipTotals={tipTotals}
+      />
 
       <p className="mt-8 text-sm">
         <Link href="/dashboard" className="text-ink-dim hover:text-ink">

@@ -2,9 +2,11 @@
 
 Video worth burning for. A new home for video, built on a tip economy.
 
-This repo implements **Phases A–C** of [the build plan](Legal/ember-build-plan.md):
+This repo implements **Phases A–D** of [the build plan](Legal/ember-build-plan.md):
 auth and profiles; video upload, processing status, a tiles browse grid, and playback;
-and the social layer — comments, likes, follows, and a full-screen vertical Flow mode.
+the social layer — comments, likes, follows, and a full-screen vertical Flow mode;
+and non-monetary tipping — a hold-to-ember mechanic, a demo wallet, per-video
+leaderboards, and viewer-to-viewer comment tipping.
 
 ## Stack
 
@@ -41,7 +43,14 @@ npx supabase db push
 - Social layer: like toggle (trigger-maintained count), flat comments, and
   follows with follower counts
 - Flow mode — a full-screen vertical snap feed with autoplay-on-scroll and a
-  like/follow action rail, toggled from the dashboard
+  like/tip/follow action rail, toggled from the dashboard
+- Non-monetary tipping (`embers`): everyone gets a demo wallet grant, and a
+  hold-to-ember button moves embers from tipper to creator through a
+  balance-checked `send_tip` ledger function. Received embers refill the
+  recipient's spendable balance. Per-video top-emberer leaderboards and
+  viewer-to-viewer comment tipping are computed from the `tips` ledger. Embers
+  are play tokens (`is_demo_currency`) with no real value — the seam for real
+  currency once FCA guidance lands.
 
 Video hosting sits behind `src/lib/video/provider.ts`, currently backed by Supabase
 Storage (50 MB/file on the free tier). Swapping in Mux or Cloudflare Stream later

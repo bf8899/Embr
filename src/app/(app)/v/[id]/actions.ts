@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/dal";
+import { TIP_AMOUNT, tipErrorMessage } from "@/lib/tips";
 
 async function requireUserId(): Promise<string> {
   const user = await getCurrentUser();
@@ -62,6 +63,28 @@ export async function toggleFollow(
     .insert({ follower_id: userId, creator_id: creatorId });
   if (error && error.code !== "23505") return { error: error.message };
   return { following: true };
+}
+
+export async function sendTip(
+  target: { videoId: string } | { commentId: string }
+): Promise<{ balance: number } | { error: string }> {
+  await requireUserId();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("send_tip", {
+    p_amount: TIP_AMOUNT,
+    p_video_id: "videoId" in target ? target.videoId : undefined,
+    p_comment_id: "commentId" in target ? target.commentId : undefined,
+  });
+  if (error) return { error: tipErrorMessage(error.message) };
+
+  // Refresh the watch page so the ember bar, leaderboard, and comment totals
+  // reflect the tip on the next load. The wallet badge updates optimistically
+  // from the returned balance in the meantime.
+  const videoId = "videoId" in target ? target.videoId : undefined;
+  if (videoId) revalidatePath(`/v/${videoId}`);
+
+  return { balance: data as number };
 }
 
 const CommentSchema = z.object({
