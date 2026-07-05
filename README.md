@@ -2,8 +2,9 @@
 
 Video worth burning for. A new home for video, built on a tip economy.
 
-This repo implements **Phases A and B** of [the build plan](Legal/ember-build-plan.md):
-auth and profiles, plus video upload, processing status, a tiles browse grid, and playback.
+This repo implements **Phases A–C** of [the build plan](Legal/ember-build-plan.md):
+auth and profiles; video upload, processing status, a tiles browse grid, and playback;
+and the social layer — comments, likes, follows, and a full-screen vertical Flow mode.
 
 ## Stack
 
@@ -37,6 +38,10 @@ npx supabase db push
 - Creator upload flow with progress, client-side thumbnail capture, and
   processing → live status handling (`src/app/(app)/upload/`)
 - Tiles browse grid on the dashboard and a watch page with view counting
+- Social layer: like toggle (trigger-maintained count), flat comments, and
+  follows with follower counts
+- Flow mode — a full-screen vertical snap feed with autoplay-on-scroll and a
+  like/follow action rail, toggled from the dashboard
 
 Video hosting sits behind `src/lib/video/provider.ts`, currently backed by Supabase
 Storage (50 MB/file on the free tier). Swapping in Mux or Cloudflare Stream later
