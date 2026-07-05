@@ -21,6 +21,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Link href="/profile" className="hover:text-ink">
             Profile
           </Link>
+          {profile.role !== "viewer" && (
+            <Link href="/upload" className="hover:text-ink">
+              Upload
+            </Link>
+          )}
         </nav>
         <div className="ml-auto flex items-center gap-4 text-sm">
           <span className="text-ink-dim">@{profile.handle}</span>

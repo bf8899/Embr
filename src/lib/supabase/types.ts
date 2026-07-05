@@ -75,15 +75,69 @@ export type Database = {
         }
         Relationships: []
       }
+      videos: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          duration_seconds: number | null
+          ember_count: number
+          id: string
+          status: Database["public"]["Enums"]["video_status"]
+          tags: string[]
+          thumbnail_url: string | null
+          title: string
+          video_asset_id: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          duration_seconds?: number | null
+          ember_count?: number
+          id?: string
+          status?: Database["public"]["Enums"]["video_status"]
+          tags?: string[]
+          thumbnail_url?: string | null
+          title: string
+          video_asset_id: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          duration_seconds?: number | null
+          ember_count?: number
+          id?: string
+          status?: Database["public"]["Enums"]["video_status"]
+          tags?: string[]
+          thumbnail_url?: string | null
+          title?: string
+          video_asset_id?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_view_count: { Args: { video_id: string }; Returns: undefined }
     }
     Enums: {
       profile_role: "viewer" | "creator" | "both"
+      video_status: "processing" | "live" | "removed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -215,6 +269,7 @@ export const Constants = {
   public: {
     Enums: {
       profile_role: ["viewer", "creator", "both"],
+      video_status: ["processing", "live", "removed"],
     },
   },
 } as const
