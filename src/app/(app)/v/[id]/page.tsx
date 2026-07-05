@@ -165,12 +165,13 @@ export default async function WatchPage({
       {video.tags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {video.tags.map((tag) => (
-            <span
+            <Link
               key={tag}
-              className="rounded-full border border-line px-3 py-1 text-xs text-ink-dim"
+              href={`/dashboard?tag=${encodeURIComponent(tag)}`}
+              className="rounded-full border border-line px-3 py-1 text-xs text-ink-dim transition hover:border-ember-2/40 hover:text-ember-2"
             >
               #{tag}
-            </span>
+            </Link>
           ))}
         </div>
       )}

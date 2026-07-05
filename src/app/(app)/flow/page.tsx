@@ -2,22 +2,44 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/dal";
 import { getVideoProvider } from "@/lib/video/provider";
+import {
+  getViewerEngagement,
+  buildTagWeights,
+  rankForYou,
+  sanitizeSearch,
+} from "@/lib/feed";
 import { FlowFeed, type FlowVideo } from "@/components/flow-feed";
 import type { VideoWithCreator } from "@/components/video-tile";
 
-export default async function FlowPage() {
+export default async function FlowPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; tag?: string; sort?: string }>;
+}) {
   const supabase = await createClient();
   const provider = getVideoProvider(supabase);
   const user = await getCurrentUser();
+  const { q, tag, sort } = await searchParams;
 
-  const { data } = await supabase
+  // Mirror the dashboard's search + tag filters so Flow flows the same set.
+  let query = supabase
     .from("videos")
     .select("*, profiles!videos_creator_id_fkey(handle, display_name)")
-    .eq("status", "live")
-    .order("created_at", { ascending: false })
-    .limit(20);
+    .eq("status", "live");
 
-  const videos = (data ?? []) as VideoWithCreator[];
+  const term = q ? sanitizeSearch(q) : "";
+  if (term) query = query.ilike("title", `%${term}%`);
+  if (tag) query = query.contains("tags", [tag]);
+
+  const { data } = await query.order("created_at", { ascending: false }).limit(20);
+
+  let videos = (data ?? []) as VideoWithCreator[];
+
+  // Same "for you" ordering as the dashboard (default), unless newest is asked.
+  if (user && sort !== "newest" && videos.length > 1) {
+    const weights = buildTagWeights(await getViewerEngagement(supabase, user.id));
+    videos = rankForYou(videos, weights);
+  }
 
   // Which of these the viewer already liked, and which creators they follow —
   // one query each rather than per-video.
