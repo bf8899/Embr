@@ -54,7 +54,7 @@ export function VideoTile({ video }: { video: VideoWithCreator }) {
       <h3 className="truncate text-sm font-medium text-ink">{video.title}</h3>
       <p className="mt-0.5 text-xs text-ink-faint">
         @{video.profiles?.handle ?? "unknown"} · {formatViews(video.view_count)}{" "}
-        views
+        views · {formatViews(video.like_count)} ♥
       </p>
     </div>
   );

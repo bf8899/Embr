@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: videos } = await supabase
     .from("videos")
-    .select("*, profiles(handle, display_name)")
+    .select("*, profiles!videos_creator_id_fkey(handle, display_name)")
     .neq("status", "removed")
     .order("created_at", { ascending: false })
     .limit(48);
@@ -39,14 +39,29 @@ export default async function DashboardPage() {
             .
           </p>
         </div>
-        {isCreator && (
-          <Link
-            href="/upload"
-            className="rounded-full bg-[image:var(--ember-grad)] px-5 py-2.5 font-display text-sm font-semibold text-[#1A0A08] shadow-[0_6px_20px_-6px_rgba(255,92,57,0.55)] hover:brightness-110"
-          >
-            Upload
-          </Link>
-        )}
+        <div className="flex items-center gap-3">
+          {tiles.length > 0 && (
+            <div className="flex rounded-full border border-line p-0.5 text-sm">
+              <span className="rounded-full bg-pane-2 px-4 py-1.5 font-medium text-ink">
+                Tiles
+              </span>
+              <Link
+                href="/flow"
+                className="rounded-full px-4 py-1.5 text-ink-dim hover:text-ink"
+              >
+                Flow
+              </Link>
+            </div>
+          )}
+          {isCreator && (
+            <Link
+              href="/upload"
+              className="rounded-full bg-[image:var(--ember-grad)] px-5 py-2.5 font-display text-sm font-semibold text-[#1A0A08] shadow-[0_6px_20px_-6px_rgba(255,92,57,0.55)] hover:brightness-110"
+            >
+              Upload
+            </Link>
+          )}
+        </div>
       </div>
 
       {tiles.length === 0 ? (
