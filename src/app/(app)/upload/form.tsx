@@ -78,7 +78,7 @@ async function readVideoMetadata(file: File): Promise<{
   }
 }
 
-export function UploadForm() {
+export function UploadForm({ capSeconds }: { capSeconds: number }) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>({ name: "idle" });
   const [file, setFile] = useState<File | null>(null);
@@ -116,12 +116,24 @@ export function UploadForm() {
         thumbnail: null,
       }));
 
+      // Friendly early stop before uploading; the server enforces this too.
+      if (metadata.durationSeconds > capSeconds) {
+        setStage({
+          name: "error",
+          message: `Clips are capped at ${capSeconds}s right now — this one is ${Math.round(
+            metadata.durationSeconds
+          )}s.`,
+        });
+        return;
+      }
+
       const created = await createUpload({
         title: String(form.get("title") ?? ""),
         description: String(form.get("description") ?? ""),
         tags,
         contentType: file.type,
         sizeBytes: file.size,
+        durationSeconds: metadata.durationSeconds,
       });
       if ("error" in created) {
         setStage({ name: "error", message: created.error });

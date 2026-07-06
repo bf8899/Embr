@@ -10,6 +10,10 @@ leaderboards, and viewer-to-viewer comment tipping; feed intelligence — a
 tag-weighted "For you" ranking with search and tag filtering; and moderation —
 reporting, an admin review queue, content removal, and account suspension.
 
+Phase G is underway: the clip-length policy (per-creator + platform-default caps,
+a request queue) and a bootstrap phase where only admins upload until the owner
+opens the doors.
+
 ## Stack
 
 - [Next.js](https://nextjs.org) (App Router) + [Tailwind CSS](https://tailwindcss.com)
@@ -64,9 +68,17 @@ npx supabase db push
   (videos → `removed`, comments soft-deleted) or suspend accounts. Enforcement
   is at the RLS layer — suspended creators' videos are hidden and their
   uploads/comments/tips are blocked, and the `is_admin`/`suspended` flags can
-  only be changed by the admin-gated `SECURITY DEFINER` functions (column
-  UPDATE is revoked from the app roles). Grant your first admin with:
+  only be changed by the admin-gated `SECURITY DEFINER` functions (a
+  `BEFORE UPDATE` trigger blocks self-escalation). Grant your first admin with:
   `update public.profiles set is_admin = true where handle = '<your-handle>';`
+- Clip-length policy + bootstrap uploads (Phase G / 6a): every upload is capped
+  at an effective length — a per-creator `profiles.max_clip_seconds` override,
+  falling back to `platform_settings.default_clip_seconds` (60s). Creators can
+  request a higher limit; admins review the queue at `/admin/clips` and can set a
+  per-creator cap, the platform default, or open/close creator uploads. While
+  `platform_settings.creator_uploads_open` is `false`, only admins can upload
+  (enforced in the `videos` insert policy); creator-role users see a friendly
+  "not open yet" page.
 
 Video hosting sits behind `src/lib/video/provider.ts`, currently backed by Supabase
 Storage (50 MB/file on the free tier). Swapping in Mux or Cloudflare Stream later

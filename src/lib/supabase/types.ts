@@ -39,6 +39,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      clip_length_requests: {
+        Row: {
+          approved_seconds: number | null
+          creator_id: string
+          cumulative_tips_at_request: number | null
+          id: string
+          leaderboard_rank_at_request: number | null
+          requested_at: string
+          requested_seconds: number
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          approved_seconds?: number | null
+          creator_id: string
+          cumulative_tips_at_request?: number | null
+          id?: string
+          leaderboard_rank_at_request?: number | null
+          requested_at?: string
+          requested_seconds: number
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          approved_seconds?: number | null
+          creator_id?: string
+          cumulative_tips_at_request?: number | null
+          id?: string
+          leaderboard_rank_at_request?: number | null
+          requested_at?: string
+          requested_seconds?: number
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clip_length_requests_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clip_length_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           body: string
@@ -157,6 +214,38 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          creator_uploads_open: boolean
+          default_clip_seconds: number
+          id: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          creator_uploads_open?: boolean
+          default_clip_seconds?: number
+          id?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          creator_uploads_open?: boolean
+          default_clip_seconds?: number
+          id?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -168,6 +257,7 @@ export type Database = {
           handle: string
           id: string
           is_admin: boolean
+          max_clip_seconds: number | null
           onboarded: boolean
           role: Database["public"]["Enums"]["profile_role"]
           suspended: boolean
@@ -182,6 +272,7 @@ export type Database = {
           handle: string
           id: string
           is_admin?: boolean
+          max_clip_seconds?: number | null
           onboarded?: boolean
           role?: Database["public"]["Enums"]["profile_role"]
           suspended?: boolean
@@ -196,6 +287,7 @@ export type Database = {
           handle?: string
           id?: string
           is_admin?: boolean
+          max_clip_seconds?: number | null
           onboarded?: boolean
           role?: Database["public"]["Enums"]["profile_role"]
           suspended?: boolean
@@ -377,6 +469,21 @@ export type Database = {
     }
     Functions: {
       admin_remove_comment: { Args: { p_comment_id: string }; Returns: undefined }
+      admin_resolve_clip_request: {
+        Args: {
+          p_approved_seconds: number
+          p_note: string
+          p_request_id: string
+          p_status: string
+        }
+        Returns: undefined
+      }
+      admin_set_creator_cap: {
+        Args: { p_seconds: number | null; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_platform_default: { Args: { p_seconds: number }; Returns: undefined }
+      admin_set_uploads_open: { Args: { p_open: boolean }; Returns: undefined }
       admin_remove_video: { Args: { p_video_id: string }; Returns: undefined }
       admin_resolve_report: {
         Args: {
@@ -388,6 +495,10 @@ export type Database = {
       admin_set_suspended: {
         Args: { p_suspended: boolean; p_user_id: string }
         Returns: undefined
+      }
+      creator_tip_standing: {
+        Args: { p_creator: string }
+        Returns: { cumulative: number; rank: number }[]
       }
       current_user_is_admin: { Args: Record<string, never>; Returns: boolean }
       increment_view_count: { Args: { video_id: string }; Returns: undefined }

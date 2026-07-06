@@ -14,3 +14,6 @@ export type Tip = Tables<"tips">;
 export type Report = Tables<"reports">;
 export type ReportTarget = Enums<"report_target">;
 export type ReportStatus = Enums<"report_status">;
+
+export type PlatformSettings = Tables<"platform_settings">;
+export type ClipLengthRequest = Tables<"clip_length_requests">;

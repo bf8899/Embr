@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, requireProfile } from "@/lib/supabase/dal";
 import { getVideoProvider } from "@/lib/video/provider";
 import { MAX_VIDEO_BYTES } from "@/lib/video/constants";
+import { getPlatformSettings, effectiveClipCap, canUpload } from "@/lib/clips";
 
 const EXT_BY_TYPE: Record<string, string> = {
   "video/mp4": "mp4",
@@ -27,6 +28,7 @@ const CreateUploadSchema = z.object({
     .int()
     .positive()
     .max(MAX_VIDEO_BYTES, { error: "Videos are capped at 50 MB for now." }),
+  durationSeconds: z.number().nonnegative().finite(),
 });
 
 export type CreateUploadResult =
@@ -45,15 +47,33 @@ export async function createUpload(
     return { error: "Switch your role to creator on your profile to upload." };
   }
 
+  const supabase = await createClient();
+  const settings = await getPlatformSettings(supabase);
+
+  // Bootstrap phase: only admins upload until creator_uploads_open is flipped.
+  if (!canUpload(profile, settings)) {
+    return { error: "Creator uploads aren't open yet." };
+  }
+
   const validated = CreateUploadSchema.safeParse(input);
   if (!validated.success) {
     return { error: validated.error.issues[0].message };
   }
-  const { title, description, tags, contentType } = validated.data;
+  const { title, description, tags, contentType, durationSeconds } = validated.data;
+
+  // Enforce the effective clip-length cap (per-creator override, else platform
+  // default) before anything is stored.
+  const cap = effectiveClipCap(profile, settings);
+  if (durationSeconds > cap) {
+    return {
+      error: `Your clips are capped at ${cap} seconds — this one is ${Math.round(
+        durationSeconds
+      )}s. Trim it, or request a higher limit from your profile.`,
+    };
+  }
 
   const videoId = crypto.randomUUID();
   const ext = EXT_BY_TYPE[contentType];
-  const supabase = await createClient();
   const provider = getVideoProvider(supabase);
 
   let videoTarget, thumbnailTarget;
