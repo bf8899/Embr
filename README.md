@@ -10,9 +10,10 @@ leaderboards, and viewer-to-viewer comment tipping; feed intelligence — a
 tag-weighted "For you" ranking with search and tag filtering; and moderation —
 reporting, an admin review queue, content removal, and account suspension.
 
-Phase G is underway: the clip-length policy (per-creator + platform-default caps,
-a request queue) and a bootstrap phase where only admins upload until the owner
-opens the doors.
+Phase G rounds it out: the clip-length policy (per-creator + platform-default
+caps, a request queue), a bootstrap phase where only admins upload until the
+owner opens the doors, rate limiting on comments and tips, an admin analytics
+view, a mobile pass, and an invite-code closed-beta gate for launch.
 
 ## Stack
 
@@ -79,6 +80,12 @@ npx supabase db push
   `platform_settings.creator_uploads_open` is `false`, only admins can upload
   (enforced in the `videos` insert policy); creator-role users see a friendly
   "not open yet" page.
+- Launch readiness (Phase G / 6b): rate limiting on comments (8/min) and tips
+  (30/min) via `BEFORE INSERT` triggers; an admin analytics view at
+  `/admin/analytics` (signups, uploads, views, watch time, tips, comments); a
+  mobile-responsiveness pass; and an invite-code **closed-beta gate** —
+  `platform_settings.beta_mode` (default off) requires a `beta_invite_codes`
+  code at signup, managed from `/admin/beta`.
 
 Video hosting sits behind `src/lib/video/provider.ts`, currently backed by Supabase
 Storage (50 MB/file on the free tier). Swapping in Mux or Cloudflare Stream later

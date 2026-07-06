@@ -10,19 +10,20 @@ const FALLBACK_DEFAULT_CLIP_SECONDS = 60;
 
 export type PlatformConfig = Pick<
   PlatformSettings,
-  "default_clip_seconds" | "creator_uploads_open"
+  "default_clip_seconds" | "creator_uploads_open" | "beta_mode"
 >;
 
 export async function getPlatformSettings(supabase: Client): Promise<PlatformConfig> {
   const { data } = await supabase
     .from("platform_settings")
-    .select("default_clip_seconds, creator_uploads_open")
+    .select("default_clip_seconds, creator_uploads_open, beta_mode")
     .eq("id", 1)
     .maybeSingle();
 
   return {
     default_clip_seconds: data?.default_clip_seconds ?? FALLBACK_DEFAULT_CLIP_SECONDS,
     creator_uploads_open: data?.creator_uploads_open ?? false,
+    beta_mode: data?.beta_mode ?? false,
   };
 }
 

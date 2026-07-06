@@ -8,5 +8,7 @@ export function tipErrorMessage(raw: string): string {
   if (raw.includes("cannot tip yourself")) return "You can't tip yourself.";
   if (raw.includes("not authenticated")) return "Sign in to send embers.";
   if (raw.includes("tip target not found")) return "That's gone now.";
+  if (raw.includes("too fast")) return "You're tipping too fast — give it a moment.";
+  if (raw.includes("account suspended")) return "Your account is suspended.";
   return "Couldn't send embers. Try again.";
 }

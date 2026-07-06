@@ -72,13 +72,19 @@ export default async function AdminPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold">Moderation queue</h1>
-        <Link href="/admin/clips" className="text-sm text-ember-2 hover:text-ember-1">
-          Clip-length controls →
+      <h1 className="font-display text-2xl font-bold">Moderation queue</h1>
+      <nav className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ember-2">
+        <Link href="/admin/clips" className="hover:text-ember-1">
+          Clip-length controls
         </Link>
-      </div>
-      <p className="mt-1 text-sm text-ink-dim">
+        <Link href="/admin/analytics" className="hover:text-ember-1">
+          Analytics
+        </Link>
+        <Link href="/admin/beta" className="hover:text-ember-1">
+          Closed beta
+        </Link>
+      </nav>
+      <p className="mt-2 text-sm text-ink-dim">
         {reports.length} open {reports.length === 1 ? "report" : "reports"}
       </p>
 

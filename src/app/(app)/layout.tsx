@@ -9,14 +9,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <WalletProvider initialBalance={profile.ember_balance}>
       <div className="flex min-h-screen flex-col">
-        <header className="flex items-center gap-6 border-b border-line px-6 py-4">
+        <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line px-4 py-3 sm:px-6 sm:py-4">
           <Link
             href="/dashboard"
             className="font-display text-base font-extrabold tracking-[0.14em] bg-[image:var(--ember-grad)] bg-clip-text text-transparent"
           >
             EMBER
           </Link>
-          <nav className="flex items-center gap-4 text-sm text-ink-dim">
+          <nav className="flex items-center gap-3 text-sm text-ink-dim sm:gap-4">
             <Link href="/dashboard" className="hover:text-ink">
               Dashboard
             </Link>
@@ -34,9 +34,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               </Link>
             )}
           </nav>
-          <div className="ml-auto flex items-center gap-4 text-sm">
+          <div className="ml-auto flex items-center gap-3 text-sm sm:gap-4">
             <WalletBadge />
-            <span className="text-ink-dim">@{profile.handle}</span>
+            <span className="hidden text-ink-dim sm:inline">@{profile.handle}</span>
             <form action={logout}>
               <button className="text-ink-dim hover:text-ink" type="submit">
                 Log out
@@ -50,7 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             and tipping are disabled.
           </div>
         )}
-        <main className="flex-1 px-6 py-10">{children}</main>
+        <main className="flex-1 px-4 py-6 sm:px-6 sm:py-10">{children}</main>
       </div>
     </WalletProvider>
   );

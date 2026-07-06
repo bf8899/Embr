@@ -17,3 +17,4 @@ export type ReportStatus = Enums<"report_status">;
 
 export type PlatformSettings = Tables<"platform_settings">;
 export type ClipLengthRequest = Tables<"clip_length_requests">;
+export type BetaInviteCode = Tables<"beta_invite_codes">;

@@ -39,6 +39,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      beta_invite_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          max_uses: number
+          note: string | null
+          revoked: boolean
+          used_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          max_uses?: number
+          note?: string | null
+          revoked?: boolean
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          max_uses?: number
+          note?: string | null
+          revoked?: boolean
+          used_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_invite_codes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clip_length_requests: {
         Row: {
           approved_seconds: number | null
@@ -216,6 +254,7 @@ export type Database = {
       }
       platform_settings: {
         Row: {
+          beta_mode: boolean
           creator_uploads_open: boolean
           default_clip_seconds: number
           id: number
@@ -223,6 +262,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          beta_mode?: boolean
           creator_uploads_open?: boolean
           default_clip_seconds?: number
           id?: number
@@ -230,6 +270,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          beta_mode?: boolean
           creator_uploads_open?: boolean
           default_clip_seconds?: number
           id?: number
@@ -482,6 +523,7 @@ export type Database = {
         Args: { p_seconds: number | null; p_user_id: string }
         Returns: undefined
       }
+      admin_set_beta_mode: { Args: { p_on: boolean }; Returns: undefined }
       admin_set_platform_default: { Args: { p_seconds: number }; Returns: undefined }
       admin_set_uploads_open: { Args: { p_open: boolean }; Returns: undefined }
       admin_remove_video: { Args: { p_video_id: string }; Returns: undefined }
@@ -502,6 +544,9 @@ export type Database = {
       }
       current_user_is_admin: { Args: Record<string, never>; Returns: boolean }
       increment_view_count: { Args: { video_id: string }; Returns: undefined }
+      invite_code_valid: { Args: { p_code: string }; Returns: boolean }
+      platform_analytics: { Args: Record<string, never>; Returns: Json }
+      redeem_invite_code: { Args: { p_code: string }; Returns: boolean }
       send_tip: {
         Args: { p_amount: number; p_comment_id?: string; p_video_id?: string }
         Returns: number
