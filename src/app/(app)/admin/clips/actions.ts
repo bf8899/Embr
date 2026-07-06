@@ -51,7 +51,9 @@ export async function setCreatorCap(
 
   const { error } = await supabase.rpc("admin_set_creator_cap", {
     p_user_id: creator.id,
-    p_seconds: seconds,
+    // null clears the per-creator override; the SQL arg defaults to null and
+    // accepts it, but the type generator narrows it to `number`, so cast.
+    p_seconds: seconds as number,
   });
   if (error) return { error: error.message };
   revalidatePath("/admin/clips");

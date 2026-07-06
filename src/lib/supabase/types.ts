@@ -509,7 +509,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_remove_comment: { Args: { p_comment_id: string }; Returns: undefined }
+      admin_delete_user: { Args: { p_user_id: string }; Returns: undefined }
+      admin_remove_comment: {
+        Args: { p_comment_id: string }
+        Returns: undefined
+      }
+      admin_remove_video: { Args: { p_video_id: string }; Returns: undefined }
       admin_resolve_clip_request: {
         Args: {
           p_approved_seconds: number
@@ -519,14 +524,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      admin_set_creator_cap: {
-        Args: { p_seconds: number | null; p_user_id: string }
-        Returns: undefined
-      }
-      admin_set_beta_mode: { Args: { p_on: boolean }; Returns: undefined }
-      admin_set_platform_default: { Args: { p_seconds: number }; Returns: undefined }
-      admin_set_uploads_open: { Args: { p_open: boolean }; Returns: undefined }
-      admin_remove_video: { Args: { p_video_id: string }; Returns: undefined }
       admin_resolve_report: {
         Args: {
           p_report_id: string
@@ -534,18 +531,54 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_set_admin: {
+        Args: { p_is_admin: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_beta_mode: { Args: { p_on: boolean }; Returns: undefined }
+      admin_set_creator_cap: {
+        Args: { p_seconds: number; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_ember_balance: {
+        Args: { p_balance: number; p_user_id: string }
+        Returns: number
+      }
+      admin_set_platform_default: {
+        Args: { p_seconds: number }
+        Returns: undefined
+      }
       admin_set_suspended: {
         Args: { p_suspended: boolean; p_user_id: string }
         Returns: undefined
       }
+      admin_set_uploads_open: { Args: { p_open: boolean }; Returns: undefined }
+      admin_user_directory: {
+        Args: { p_search?: string }
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          ember_balance: number
+          handle: string
+          id: string
+          is_admin: boolean
+          role: Database["public"]["Enums"]["profile_role"]
+          suspended: boolean
+          video_count: number
+        }[]
+      }
       creator_tip_standing: {
         Args: { p_creator: string }
-        Returns: { cumulative: number; rank: number }[]
+        Returns: {
+          cumulative: number
+          rank: number
+        }[]
       }
-      current_user_is_admin: { Args: Record<string, never>; Returns: boolean }
+      current_user_is_admin: { Args: never; Returns: boolean }
       increment_view_count: { Args: { video_id: string }; Returns: undefined }
       invite_code_valid: { Args: { p_code: string }; Returns: boolean }
-      platform_analytics: { Args: Record<string, never>; Returns: Json }
+      platform_analytics: { Args: never; Returns: Json }
       redeem_invite_code: { Args: { p_code: string }; Returns: boolean }
       send_tip: {
         Args: { p_amount: number; p_comment_id?: string; p_video_id?: string }
