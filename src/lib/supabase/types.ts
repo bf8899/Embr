@@ -568,6 +568,18 @@ export type Database = {
           video_count: number
         }[]
       }
+      advertiser_analytics: { Args: never; Returns: Json }
+      advertiser_timeseries: {
+        Args: { p_weeks?: number }
+        Returns: {
+          comments: number
+          follows: number
+          likes: number
+          signups: number
+          tips: number
+          week_start: string
+        }[]
+      }
       creator_tip_standing: {
         Args: { p_creator: string }
         Returns: {

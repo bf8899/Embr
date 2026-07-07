@@ -60,7 +60,12 @@ export default async function AdminAnalyticsPage() {
           ← Moderation queue
         </Link>
       </div>
-      <p className="mt-1 text-sm text-ink-dim">Platform totals at a glance.</p>
+      <p className="mt-1 text-sm text-ink-dim">
+        Platform totals at a glance.{" "}
+        <Link href="/admin/audience" className="text-ember-2 hover:text-ember-1">
+          Audience &amp; reach (for advertisers) →
+        </Link>
+      </p>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Stat

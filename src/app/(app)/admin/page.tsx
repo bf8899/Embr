@@ -83,6 +83,9 @@ export default async function AdminPage() {
         <Link href="/admin/analytics" className="hover:text-ember-1">
           Analytics
         </Link>
+        <Link href="/admin/audience" className="hover:text-ember-1">
+          Audience
+        </Link>
         <Link href="/admin/beta" className="hover:text-ember-1">
           Closed beta
         </Link>
