@@ -68,6 +68,14 @@ export function Comments({
         {comments.length} {comments.length === 1 ? "comment" : "comments"}
       </h2>
 
+      {!currentUserId ? (
+        <a
+          href="/login"
+          className="mt-4 block rounded-[14px] border border-line bg-pane px-4 py-3 text-sm text-ink-dim transition hover:text-ink"
+        >
+          Log in to join the conversation →
+        </a>
+      ) : (
       <form ref={formRef} onSubmit={onSubmit} className="mt-4 flex flex-col gap-2">
         <textarea
           name="body"
@@ -84,6 +92,7 @@ export function Comments({
           </Button>
         </div>
       </form>
+      )}
 
       <ul className="mt-6 flex flex-col gap-5">
         {comments.map((c) => (

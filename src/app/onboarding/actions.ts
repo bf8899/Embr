@@ -61,5 +61,5 @@ export async function completeOnboarding(
     return { message };
   }
 
-  redirect("/dashboard");
+  redirect("/");
 }

@@ -1,9 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// "/api/track" is public so anonymous visitors are counted — it does its own
-// (implicit) auth via auth.uid() inside the RPC, and only ever writes events.
-const PUBLIC_ROUTES = ["/", "/login", "/signup", "/auth/confirm", "/api/track"];
+// Content-first: browse/watch/flow and the marketing page are public. Only
+// these prefixes require a session — everything else (incl. "/", "/v/*",
+// "/flow", "/welcome", "/api/track") is open to anonymous visitors.
+const GATED_PREFIXES = ["/profile", "/upload", "/onboarding", "/admin"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -35,9 +36,11 @@ export async function updateSession(request: NextRequest) {
   const claims = data?.claims;
 
   const path = request.nextUrl.pathname;
-  const isPublicRoute = PUBLIC_ROUTES.includes(path);
+  const isGated = GATED_PREFIXES.some(
+    (p) => path === p || path.startsWith(p + "/")
+  );
 
-  if (!claims && !isPublicRoute) {
+  if (!claims && isGated) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -45,7 +48,7 @@ export async function updateSession(request: NextRequest) {
 
   if (claims && (path === "/login" || path === "/signup")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 

@@ -138,21 +138,30 @@ export default async function WatchPage({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {user && (
-            <LikeButton
-              videoId={video.id}
-              initialLiked={liked}
-              initialCount={video.like_count}
-            />
-          )}
-          {user && !isOwner && (
-            <TipButton target={{ videoId: video.id }} variant="inline" />
-          )}
-          {user && !isOwner && (
-            <FollowButton
-              creatorId={video.creator_id}
-              initialFollowing={following}
-            />
+          {user ? (
+            <>
+              <LikeButton
+                videoId={video.id}
+                initialLiked={liked}
+                initialCount={video.like_count}
+              />
+              {!isOwner && (
+                <TipButton target={{ videoId: video.id }} variant="inline" />
+              )}
+              {!isOwner && (
+                <FollowButton
+                  creatorId={video.creator_id}
+                  initialFollowing={following}
+                />
+              )}
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-full bg-[image:var(--ember-grad)] px-5 py-2 text-sm font-semibold text-[#1A0A08] hover:brightness-110"
+            >
+              Log in to like, follow &amp; tip
+            </Link>
           )}
         </div>
       </div>
@@ -168,7 +177,7 @@ export default async function WatchPage({
           {video.tags.map((tag) => (
             <Link
               key={tag}
-              href={`/dashboard?tag=${encodeURIComponent(tag)}`}
+              href={`/?tag=${encodeURIComponent(tag)}`}
               className="rounded-full border border-line px-3 py-1 text-xs text-ink-dim transition hover:border-ember-2/40 hover:text-ember-2"
             >
               #{tag}
@@ -187,7 +196,7 @@ export default async function WatchPage({
       />
 
       <div className="mt-8 flex items-center justify-between">
-        <Link href="/dashboard" className="text-sm text-ink-dim hover:text-ink">
+        <Link href="/" className="text-sm text-ink-dim hover:text-ink">
           ← Back to browse
         </Link>
         {user && !isOwner && (

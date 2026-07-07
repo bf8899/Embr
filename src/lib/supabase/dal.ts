@@ -14,6 +14,22 @@ export const getCurrentUser = cache(async () => {
   return user;
 });
 
+// Optional profile — for public pages that adapt to whoever's viewing
+// (logged-in or anonymous) without forcing a redirect.
+export const getProfile = cache(async (): Promise<Profile | null> => {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  return profile ?? null;
+});
+
 export const requireProfile = cache(async (): Promise<Profile> => {
   const user = await getCurrentUser();
   if (!user) {
@@ -37,7 +53,7 @@ export const requireProfile = cache(async (): Promise<Profile> => {
 export const requireAdmin = cache(async (): Promise<Profile> => {
   const profile = await requireProfile();
   if (!profile.is_admin) {
-    redirect("/dashboard");
+    redirect("/");
   }
   return profile;
 });

@@ -68,7 +68,7 @@ export function FlowFeed({
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard"
+            href="/"
             aria-label="Back to browse"
             className="grid h-10 w-10 place-items-center rounded-full bg-black/40 text-ink backdrop-blur hover:bg-black/60"
           >

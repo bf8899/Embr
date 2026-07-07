@@ -2,13 +2,13 @@ import Link from "next/link";
 
 type Params = { q?: string; tag?: string; sort?: string };
 
-// Merge current params with overrides (undefined clears a key) into a /dashboard href.
+// Merge current params with overrides (undefined clears a key) into a browse href.
 function href(base: Params, override: Params): string {
   const merged = { ...base, ...override };
   const sp = new URLSearchParams();
   for (const [k, v] of Object.entries(merged)) if (v) sp.set(k, v);
   const qs = sp.toString();
-  return qs ? `/dashboard?${qs}` : "/dashboard";
+  return qs ? `/?${qs}` : "/";
 }
 
 const seg = "rounded-full px-4 py-1.5 transition";
@@ -28,7 +28,7 @@ export function BrowseControls({
     <div className="mt-6 flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
         <form
-          action="/dashboard"
+          action="/"
           method="get"
           className="min-w-[200px] flex-1 sm:max-w-sm"
         >
