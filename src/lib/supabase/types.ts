@@ -550,7 +550,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      active_users_summary: { Args: never; Returns: Json }
+      active_users_summary: { Args: { p_days?: number }; Returns: Json }
       admin_delete_user: { Args: { p_user_id: string }; Returns: undefined }
       admin_remove_comment: {
         Args: { p_comment_id: string }

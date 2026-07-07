@@ -56,10 +56,12 @@ type Active = {
   wau: number;
   mau: number;
   avg_session_minutes: number;
-  active_30d: number;
-  new_30d: number;
-  returning_30d: number;
+  active_range: number;
+  new_range: number;
+  returning_range: number;
 };
+
+const RANGES = [7, 30, 90] as const;
 
 type DauDay = { day: string; actives: number };
 type Geo = { country: string; actives: number };
@@ -108,16 +110,24 @@ function Card({
   );
 }
 
-export default async function AudiencePage() {
+export default async function AudiencePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ days?: string }>;
+}) {
   await requireAdmin();
   const supabase = await createClient();
+
+  const { days: daysParam } = await searchParams;
+  const parsed = Number(daysParam);
+  const days = (RANGES as readonly number[]).includes(parsed) ? parsed : 30;
 
   const [analyticsRes, seriesRes, activeRes, dauRes, geoRes] = await Promise.all([
     supabase.rpc("advertiser_analytics"),
     supabase.rpc("advertiser_timeseries", { p_weeks: 12 }),
-    supabase.rpc("active_users_summary"),
-    supabase.rpc("dau_series", { p_days: 30 }),
-    supabase.rpc("geo_breakdown", { p_days: 30 }),
+    supabase.rpc("active_users_summary", { p_days: days }),
+    supabase.rpc("dau_series", { p_days: days }),
+    supabase.rpc("geo_breakdown", { p_days: days }),
   ]);
 
   const a = analyticsRes.data as Analytics | null;
@@ -159,8 +169,8 @@ export default async function AudiencePage() {
 
   const stickiness = active && active.mau ? Math.round((active.dau / active.mau) * 100) : 0;
   const returningRate =
-    active && active.active_30d
-      ? Math.round((active.returning_30d / active.active_30d) * 100)
+    active && active.active_range
+      ? Math.round((active.returning_range / active.active_range) * 100)
       : 0;
   const dauPoints = dau.map((d) => ({ label: dayLabel(d.day), value: d.actives }));
   const geoMax = Math.max(1, ...geo.map((g) => g.actives));
@@ -173,9 +183,26 @@ export default async function AudiencePage() {
           ← Analytics
         </Link>
       </div>
-      <p className="mt-1 text-sm text-ink-dim">
-        Metrics for media &amp; advertising partners.
-      </p>
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-ink-dim">
+          Metrics for media &amp; advertising partners.
+        </p>
+        <div className="flex rounded-full border border-line p-0.5 text-xs">
+          {RANGES.map((r) => (
+            <Link
+              key={r}
+              href={`/admin/audience?days=${r}`}
+              className={`rounded-full px-3 py-1.5 transition ${
+                r === days
+                  ? "bg-pane-2 font-medium text-ink"
+                  : "text-ink-dim hover:text-ink"
+              }`}
+            >
+              {r}d
+            </Link>
+          ))}
+        </div>
+      </div>
 
       {/* headline KPIs */}
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -208,7 +235,7 @@ export default async function AudiencePage() {
               ["DAU", active?.dau ?? 0, "today"],
               ["WAU", active?.wau ?? 0, "7 days"],
               ["MAU", active?.mau ?? 0, "30 days"],
-              ["Avg session", active?.avg_session_minutes ?? 0, "minutes"],
+              ["Avg session", active?.avg_session_minutes ?? 0, `min · ${days}d`],
             ].map(([label, value, sub]) => (
               <div key={label as string}>
                 <p className="text-xs uppercase tracking-wide text-ink-faint">{label}</p>
@@ -227,20 +254,20 @@ export default async function AudiencePage() {
               Stickiness (DAU/MAU) <span className="text-ink-dim">{stickiness}%</span>
             </span>
             <span>
-              Returning (30d) <span className="text-ink-dim">{returningRate}%</span>
+              Returning ({days}d) <span className="text-ink-dim">{returningRate}%</span>
             </span>
             <span>
-              New (30d) <span className="text-ink-dim">{active?.new_30d ?? 0}</span>
+              New ({days}d) <span className="text-ink-dim">{active?.new_range ?? 0}</span>
             </span>
           </div>
           <p className="mt-3 text-xs text-ink-faint">
-            Daily unique visitors over the last 30 days. Session length and
+            Daily unique visitors over the last {days} days. Session length and
             returning-rate come from real page/session events; these populate as
             people use the live site.
           </p>
         </Card>
 
-        <Card title="Where they are" note="top countries · last 30 days">
+        <Card title="Where they are" note={`top countries · last ${days} days`}>
           {geo.length === 0 ? (
             <p className="text-sm text-ink-faint">
               No location data yet — country is read from the edge on the live
