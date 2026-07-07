@@ -39,6 +39,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          country: string | null
+          created_at: string
+          event_type: string
+          id: number
+          path: string | null
+          region: string | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          event_type: string
+          id?: never
+          path?: string | null
+          region?: string | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          event_type?: string
+          id?: never
+          path?: string | null
+          region?: string | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beta_invite_codes: {
         Row: {
           code: string
@@ -509,6 +550,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      active_users_summary: { Args: never; Returns: Json }
       admin_delete_user: { Args: { p_user_id: string }; Returns: undefined }
       admin_remove_comment: {
         Args: { p_comment_id: string }
@@ -588,6 +630,20 @@ export type Database = {
         }[]
       }
       current_user_is_admin: { Args: never; Returns: boolean }
+      dau_series: {
+        Args: { p_days?: number }
+        Returns: {
+          actives: number
+          day: string
+        }[]
+      }
+      geo_breakdown: {
+        Args: { p_days?: number }
+        Returns: {
+          actives: number
+          country: string
+        }[]
+      }
       increment_view_count: { Args: { video_id: string }; Returns: undefined }
       invite_code_valid: { Args: { p_code: string }; Returns: boolean }
       platform_analytics: { Args: never; Returns: Json }
@@ -595,6 +651,16 @@ export type Database = {
       send_tip: {
         Args: { p_amount: number; p_comment_id?: string; p_video_id?: string }
         Returns: number
+      }
+      track_event: {
+        Args: {
+          p_country?: string
+          p_event_type: string
+          p_path?: string
+          p_region?: string
+          p_session_id: string
+        }
+        Returns: undefined
       }
       video_tip_leaderboard: {
         Args: { p_limit?: number; p_video_id: string }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Syne, Instrument_Sans } from "next/font/google";
 import "./globals.css";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
 
 const syne = Syne({
   variable: "--font-syne",
@@ -28,7 +29,10 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${instrumentSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <AnalyticsTracker />
+      </body>
     </html>
   );
 }

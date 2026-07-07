@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/login", "/signup", "/auth/confirm"];
+// "/api/track" is public so anonymous visitors are counted — it does its own
+// (implicit) auth via auth.uid() inside the RPC, and only ever writes events.
+const PUBLIC_ROUTES = ["/", "/login", "/signup", "/auth/confirm", "/api/track"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

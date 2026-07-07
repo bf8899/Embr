@@ -51,6 +51,26 @@ type Week = {
   follows: number;
 };
 
+type Active = {
+  dau: number;
+  wau: number;
+  mau: number;
+  avg_session_minutes: number;
+  active_30d: number;
+  new_30d: number;
+  returning_30d: number;
+};
+
+type DauDay = { day: string; actives: number };
+type Geo = { country: string; actives: number };
+
+function dayLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
 function weekLabel(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
     month: "short",
@@ -92,13 +112,19 @@ export default async function AudiencePage() {
   await requireAdmin();
   const supabase = await createClient();
 
-  const [analyticsRes, seriesRes] = await Promise.all([
+  const [analyticsRes, seriesRes, activeRes, dauRes, geoRes] = await Promise.all([
     supabase.rpc("advertiser_analytics"),
     supabase.rpc("advertiser_timeseries", { p_weeks: 12 }),
+    supabase.rpc("active_users_summary"),
+    supabase.rpc("dau_series", { p_days: 30 }),
+    supabase.rpc("geo_breakdown", { p_days: 30 }),
   ]);
 
   const a = analyticsRes.data as Analytics | null;
   const weeks = (seriesRes.data ?? []) as Week[];
+  const active = activeRes.data as Active | null;
+  const dau = (dauRes.data ?? []) as DauDay[];
+  const geo = (geoRes.data ?? []) as Geo[];
 
   if (!a) {
     return (
@@ -130,6 +156,14 @@ export default async function AudiencePage() {
   }));
 
   const creatorsCombined = a.audience.creators + a.audience.both;
+
+  const stickiness = active && active.mau ? Math.round((active.dau / active.mau) * 100) : 0;
+  const returningRate =
+    active && active.active_30d
+      ? Math.round((active.returning_30d / active.active_30d) * 100)
+      : 0;
+  const dauPoints = dau.map((d) => ({ label: dayLabel(d.day), value: d.actives }));
+  const geoMax = Math.max(1, ...geo.map((g) => g.actives));
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -168,6 +202,70 @@ export default async function AudiencePage() {
       </div>
 
       <div className="mt-8 flex flex-col gap-6">
+        <Card title="Active audience" note="unique visitors incl. anonymous">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              ["DAU", active?.dau ?? 0, "today"],
+              ["WAU", active?.wau ?? 0, "7 days"],
+              ["MAU", active?.mau ?? 0, "30 days"],
+              ["Avg session", active?.avg_session_minutes ?? 0, "minutes"],
+            ].map(([label, value, sub]) => (
+              <div key={label as string}>
+                <p className="text-xs uppercase tracking-wide text-ink-faint">{label}</p>
+                <p className="mt-1 font-display text-2xl font-bold text-ink">
+                  {formatViews(value as number)}
+                </p>
+                <p className="text-xs text-ink-faint">{sub}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6">
+            <BarChart points={dauPoints} />
+          </div>
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-faint">
+            <span>
+              Stickiness (DAU/MAU) <span className="text-ink-dim">{stickiness}%</span>
+            </span>
+            <span>
+              Returning (30d) <span className="text-ink-dim">{returningRate}%</span>
+            </span>
+            <span>
+              New (30d) <span className="text-ink-dim">{active?.new_30d ?? 0}</span>
+            </span>
+          </div>
+          <p className="mt-3 text-xs text-ink-faint">
+            Daily unique visitors over the last 30 days. Session length and
+            returning-rate come from real page/session events; these populate as
+            people use the live site.
+          </p>
+        </Card>
+
+        <Card title="Where they are" note="top countries · last 30 days">
+          {geo.length === 0 ? (
+            <p className="text-sm text-ink-faint">
+              No location data yet — country is read from the edge on the live
+              site, so it fills in once there&apos;s production traffic.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2.5">
+              {geo.map((g) => (
+                <li key={g.country} className="flex items-center gap-3 text-sm">
+                  <span className="w-10 shrink-0 text-ink">{g.country}</span>
+                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-pane-2">
+                    <span
+                      className="block h-full rounded-full bg-[image:var(--ember-grad)]"
+                      style={{ width: `${(g.actives / geoMax) * 100}%` }}
+                    />
+                  </span>
+                  <span className="w-16 shrink-0 text-right text-ink-dim">
+                    {formatViews(g.actives)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
         <Card title="Audience growth" note="cumulative users">
           <AreaChart points={growthPoints} />
         </Card>
