@@ -339,6 +339,7 @@ export type Database = {
           handle: string
           id: string
           is_admin: boolean
+          is_demo: boolean
           max_clip_seconds: number | null
           onboarded: boolean
           role: Database["public"]["Enums"]["profile_role"]
@@ -354,6 +355,7 @@ export type Database = {
           handle: string
           id: string
           is_admin?: boolean
+          is_demo?: boolean
           max_clip_seconds?: number | null
           onboarded?: boolean
           role?: Database["public"]["Enums"]["profile_role"]
@@ -369,6 +371,7 @@ export type Database = {
           handle?: string
           id?: string
           is_admin?: boolean
+          is_demo?: boolean
           max_clip_seconds?: number | null
           onboarded?: boolean
           role?: Database["public"]["Enums"]["profile_role"]
