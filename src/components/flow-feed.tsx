@@ -7,6 +7,7 @@ import { LikeButton } from "@/components/like-button";
 import { FollowButton } from "@/components/follow-button";
 import { TipButton } from "@/components/tip-button";
 import { WalletBadge } from "@/components/wallet";
+import { LiveChat } from "@/components/live-chat";
 
 export type FlowVideo = {
   id: string;
@@ -25,11 +26,14 @@ export type FlowVideo = {
 export function FlowFeed({
   videos,
   signedIn,
+  userId,
 }: {
   videos: FlowVideo[];
   signedIn: boolean;
+  userId: string | null;
 }) {
   const [muted, setMuted] = useState(true);
+  const [activeId, setActiveId] = useState(videos[0]?.id ?? "");
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const viewed = useRef<Set<string>>(new Set());
 
@@ -44,6 +48,7 @@ export function FlowFeed({
           const own = el.dataset.own === "true";
           if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
             el.play().catch(() => {});
+            setActiveId(id);
             if (!own && !viewed.current.has(id)) {
               viewed.current.add(id);
               createClient()
@@ -64,6 +69,8 @@ export function FlowFeed({
 
   return (
     <div className="fixed inset-0 z-50 bg-void">
+      {activeId && <LiveChat videoId={activeId} userId={userId} />}
+
       {/* top bar */}
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4">
         <div className="flex items-center gap-3">

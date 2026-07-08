@@ -95,5 +95,5 @@ export default async function FlowPage({
     );
   }
 
-  return <FlowFeed videos={feed} signedIn={!!user} />;
+  return <FlowFeed videos={feed} signedIn={!!user} userId={user?.id ?? null} />;
 }

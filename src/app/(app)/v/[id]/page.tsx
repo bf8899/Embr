@@ -11,6 +11,7 @@ import { TipButton } from "@/components/tip-button";
 import { ReportButton } from "@/components/report-button";
 import { TipLeaderboard, type LeaderRow } from "@/components/tip-leaderboard";
 import { Comments, type CommentView } from "@/components/comments";
+import { LiveChat } from "@/components/live-chat";
 import { ViewPing } from "./view-ping";
 
 export default async function WatchPage({
@@ -103,6 +104,7 @@ export default async function WatchPage({
   return (
     <div className="mx-auto max-w-3xl">
       {!isOwner && <ViewPing videoId={video.id} />}
+      <LiveChat videoId={video.id} userId={user?.id ?? null} />
 
       <video
         controls
