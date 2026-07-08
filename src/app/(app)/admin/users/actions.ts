@@ -53,6 +53,31 @@ export async function setEmberBalance(
   return { ok: true };
 }
 
+// Send embers as a platform gift: lands in the recipient's wallet AND is
+// recorded as earned (counts on the leaderboard). See admin_grant_tip.
+export async function sendEmbers(
+  userId: string,
+  amount: number
+): Promise<{ balance: number } | Err> {
+  await requireAdmin();
+  if (!Number.isInteger(amount) || amount <= 0) {
+    return { error: "Enter an amount above 0." };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_grant_tip", {
+    p_user_id: userId,
+    p_amount: amount,
+  });
+  if (error) {
+    const msg = error.message.includes("yourself")
+      ? "You can't send embers to yourself."
+      : friendly(error.message);
+    return { error: msg };
+  }
+  revalidatePath("/admin/users");
+  return { balance: data as number };
+}
+
 export async function setAdmin(
   userId: string,
   isAdmin: boolean

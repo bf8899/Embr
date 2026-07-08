@@ -2,7 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { setSuspended, setEmberBalance, setAdmin, deleteUser } from "./actions";
+import {
+  setSuspended,
+  setEmberBalance,
+  sendEmbers,
+  setAdmin,
+  deleteUser,
+} from "./actions";
 
 export type AdminUser = {
   id: string;
@@ -42,9 +48,10 @@ export function UserRow({
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [balance, setBalance] = useState(String(user.ember_balance));
+  const [gift, setGift] = useState("100");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  function run(fn: () => Promise<{ ok: true } | { error: string }>) {
+  function run(fn: () => Promise<{ error: string } | object>) {
     start(async () => {
       setError(null);
       const res = await fn();
@@ -110,21 +117,41 @@ export function UserRow({
             {user.is_admin ? "Revoke admin" : "Make admin"}
           </button>
 
+          {/* send a gift: adds to wallet + counts as earned on the leaderboard */}
+          <span className="inline-flex items-center gap-1 rounded-full border border-ember-1/40 px-1.5 py-0.5">
+            <input
+              type="number"
+              min={1}
+              value={gift}
+              onChange={(e) => setGift(e.target.value)}
+              aria-label={`Send embers to @${user.handle}`}
+              className="w-16 bg-transparent px-2 py-0.5 text-xs text-ink outline-none"
+            />
+            <button
+              className={`${btn} border-transparent bg-[image:var(--ember-grad)] text-[#1A0A08] hover:brightness-110`}
+              disabled={pending}
+              onClick={() => run(() => sendEmbers(user.id, Number(gift)))}
+            >
+              Send embers
+            </button>
+          </span>
+
+          {/* set absolute balance (corrections/resets) */}
           <span className="inline-flex items-center gap-1 rounded-full border border-line px-1.5 py-0.5">
             <input
               type="number"
               min={0}
               value={balance}
               onChange={(e) => setBalance(e.target.value)}
-              aria-label={`Set embers for @${user.handle}`}
-              className="w-20 bg-transparent px-2 py-0.5 text-xs text-ink outline-none"
+              aria-label={`Set embers balance for @${user.handle}`}
+              className="w-16 bg-transparent px-2 py-0.5 text-xs text-ink outline-none"
             />
             <button
               className={warm}
               disabled={pending}
               onClick={() => run(() => setEmberBalance(user.id, Number(balance)))}
             >
-              Set embers
+              Set
             </button>
           </span>
 

@@ -22,6 +22,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link href="/" className="hover:text-ink">
               Browse
             </Link>
+            <Link href="/leaderboard" className="hover:text-ink">
+              Leaderboard
+            </Link>
             <Link href="/profile" className="hover:text-ink">
               Profile
             </Link>
@@ -47,7 +50,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </>
       ) : (
-        <div className="ml-auto flex items-center gap-3 text-sm">
+        <div className="ml-auto flex items-center gap-3 text-sm sm:gap-4">
+          <Link href="/leaderboard" className="text-ink-dim hover:text-ink">
+            Leaderboard
+          </Link>
           <Link href="/login" className="text-ink-dim hover:text-ink">
             Log in
           </Link>

@@ -552,6 +552,10 @@ export type Database = {
     Functions: {
       active_users_summary: { Args: { p_days?: number }; Returns: Json }
       admin_delete_user: { Args: { p_user_id: string }; Returns: undefined }
+      admin_grant_tip: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: number
+      }
       admin_remove_comment: {
         Args: { p_comment_id: string }
         Returns: undefined
@@ -651,6 +655,25 @@ export type Database = {
       send_tip: {
         Args: { p_amount: number; p_comment_id?: string; p_video_id?: string }
         Returns: number
+      }
+      top_creators_leaderboard: {
+        Args: { p_limit?: number }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          earned: number
+          handle: string
+          id: string
+        }[]
+      }
+      top_supporters_leaderboard: {
+        Args: { p_limit?: number }
+        Returns: {
+          display_name: string
+          handle: string
+          id: string
+          sent: number
+        }[]
       }
       track_event: {
         Args: {
