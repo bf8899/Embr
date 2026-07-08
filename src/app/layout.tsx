@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Syne, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
+import { EmberBackground } from "@/components/ember-background";
 
 const syne = Syne({
   variable: "--font-syne",
@@ -29,8 +30,9 @@ export default function RootLayout({
       lang="en"
       className={`${syne.variable} ${instrumentSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        {children}
+      <body className="min-h-full">
+        <EmberBackground />
+        <div className="app-content flex min-h-full flex-col">{children}</div>
         <AnalyticsTracker />
       </body>
     </html>

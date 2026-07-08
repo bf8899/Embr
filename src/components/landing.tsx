@@ -1,24 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 
 // Marketing landing, adapted from the original Ember demo (Demo/index.html).
-// Same look — aurora, rising-ember canvas, flame mark, two-modes + tip-economy
-// sections — but wired to the real app: CTAs go to /signup and /login, and the
-// fabricated waitlist stats/form are replaced with honest copy since signups
-// are live.
+// The aurora + rising-ember background now comes from the global
+// EmberBackground (root layout); this keeps the flame mark, two-modes, and
+// tip-economy sections, wired to the real app.
 
 const CSS = `
 .lp{position:relative;z-index:3;overflow-x:hidden}
-.lp .aurora{position:fixed;inset:-20%;z-index:0;pointer-events:none;
-  background:
-    radial-gradient(38% 32% at 12% 8%,rgba(255,92,57,.10),transparent 70%),
-    radial-gradient(42% 36% at 88% 90%,rgba(255,46,136,.09),transparent 70%),
-    radial-gradient(30% 26% at 78% 12%,rgba(255,176,58,.06),transparent 70%);
-  filter:blur(40px);animation:lpAurora 26s ease-in-out infinite alternate}
-@keyframes lpAurora{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(2%,2%,0) scale(1.06)}}
-.lp #emberField{position:fixed;inset:0;z-index:1;pointer-events:none}
 .lp .content{position:relative;z-index:3}
 
 .lp header{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:26px;
@@ -109,71 +100,13 @@ const CSS = `
 .lp .rev.vis{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){
   .lp .rev{opacity:1;transform:none}
-  .lp .mark svg,.lp .aurora{animation:none}
+  .lp .mark svg{animation:none}
 }
 `;
 
 export function Landing() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    // rising ember particles
-    let raf = 0;
-    let removeResize: (() => void) | undefined;
-    const cv = canvasRef.current;
-    if (cv && !reduced) {
-      const ctx = cv.getContext("2d")!;
-      let W = 0;
-      let H = 0;
-      const size = () => {
-        W = cv.width = window.innerWidth;
-        H = cv.height = window.innerHeight;
-      };
-      size();
-      window.addEventListener("resize", size);
-      type P = {
-        x: number; y: number; r: number; vy: number; sway: number;
-        swaySp: number; hue: number; life: number; maxLife: number;
-      };
-      const spawn = (): P => ({
-        x: Math.random() * W, y: H + 10, r: 0.8 + Math.random() * 2.2,
-        vy: 0.25 + Math.random() * 0.6, sway: Math.random() * 2 * Math.PI,
-        swaySp: 0.004 + Math.random() * 0.01, hue: 20 + Math.random() * 20,
-        life: 0, maxLife: 600 + Math.random() * 500,
-      });
-      const parts: P[] = [];
-      for (let i = 0; i < 26; i++) {
-        const p = spawn();
-        p.y = Math.random() * H;
-        parts.push(p);
-      }
-      const loop = () => {
-        ctx.clearRect(0, 0, W, H);
-        for (const p of parts) {
-          p.y -= p.vy;
-          p.sway += p.swaySp;
-          p.x += Math.sin(p.sway) * 0.3;
-          p.life++;
-          const fade =
-            Math.min(p.life / 60, 1) * Math.max(1 - p.life / p.maxLife, 0) * 0.55;
-          ctx.beginPath();
-          ctx.fillStyle = `hsla(${p.hue} 90% 62% / ${fade})`;
-          ctx.shadowColor = `hsla(${p.hue} 90% 60% / ${fade})`;
-          ctx.shadowBlur = 8;
-          ctx.arc(p.x, p.y, p.r, 0, 7);
-          ctx.fill();
-          if (p.y < -12 || p.life > p.maxLife) Object.assign(p, spawn());
-        }
-        ctx.shadowBlur = 0;
-        raf = requestAnimationFrame(loop);
-      };
-      loop();
-      removeResize = () => window.removeEventListener("resize", size);
-    }
-
-    // scroll reveals
+    // scroll reveals (the ember background is now global)
     const io = new IntersectionObserver(
       (es) => {
         es.forEach((e) => {
@@ -186,19 +119,12 @@ export function Landing() {
       { threshold: 0.14 }
     );
     document.querySelectorAll(".lp .rev").forEach((el) => io.observe(el));
-
-    return () => {
-      cancelAnimationFrame(raf);
-      io.disconnect();
-      removeResize?.();
-    };
+    return () => io.disconnect();
   }, []);
 
   return (
     <div className="lp">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <div className="aurora" aria-hidden />
-      <canvas ref={canvasRef} id="emberField" aria-hidden />
 
       <div className="content">
         <header>

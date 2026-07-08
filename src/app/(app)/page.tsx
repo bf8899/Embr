@@ -10,6 +10,7 @@ import {
 } from "@/lib/feed";
 import { VideoTile, type VideoWithCreator } from "@/components/video-tile";
 import { BrowseControls } from "@/components/browse-controls";
+import { FlameMark } from "@/components/flame-mark";
 
 // Most common tags across a snapshot of live videos, for the quick-filter chips.
 function popularTags(rows: { tags: string[] }[], limit = 8): string[] {
@@ -72,38 +73,41 @@ export default async function BrowsePage({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-bold">
-            {profile ? `Welcome, ${profile.display_name}` : "Browse Ember"}
-          </h1>
-          <p className="mt-1 text-sm text-ink-dim">
-            {profile
-              ? "Fresh video, ranked for you."
-              : "Watch free. Hold the flame to send embers to creators you love."}
-          </p>
+      {/* flame hero — the ignition, above the library */}
+      <section className="flex flex-col items-center pb-8 pt-1 text-center sm:pt-3">
+        <FlameMark className="h-20 w-20 sm:h-24 sm:w-24" ignite />
+        <h1 className="mt-3 font-display text-3xl font-extrabold tracking-[0.14em] sm:text-4xl">
+          <span className="bg-[image:var(--ember-grad)] bg-clip-text text-transparent">
+            EMBER
+          </span>
+        </h1>
+        <p className="mt-2 max-w-md text-sm text-ink-dim">
+          {profile
+            ? `Welcome back, ${profile.display_name}. Fresh video, ranked for you.`
+            : "Watch free. Hold the flame to send embers to creators you love."}
+        </p>
+      </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex rounded-full border border-line p-0.5 text-sm">
+          <span className="rounded-full bg-pane-2 px-4 py-1.5 font-medium text-ink">
+            Tiles
+          </span>
+          <Link
+            href={flowHref}
+            className="rounded-full px-4 py-1.5 text-ink-dim hover:text-ink"
+          >
+            Flow
+          </Link>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex rounded-full border border-line p-0.5 text-sm">
-            <span className="rounded-full bg-pane-2 px-4 py-1.5 font-medium text-ink">
-              Tiles
-            </span>
-            <Link
-              href={flowHref}
-              className="rounded-full px-4 py-1.5 text-ink-dim hover:text-ink"
-            >
-              Flow
-            </Link>
-          </div>
-          {isCreator && (
-            <Link
-              href="/upload"
-              className="rounded-full bg-[image:var(--ember-grad)] px-5 py-2.5 font-display text-sm font-semibold text-[#1A0A08] shadow-[0_6px_20px_-6px_rgba(255,92,57,0.55)] hover:brightness-110"
-            >
-              Upload
-            </Link>
-          )}
-        </div>
+        {isCreator && (
+          <Link
+            href="/upload"
+            className="rounded-full bg-[image:var(--ember-grad)] px-5 py-2.5 font-display text-sm font-semibold text-[#1A0A08] shadow-[0_6px_20px_-6px_rgba(255,92,57,0.55)] hover:brightness-110"
+          >
+            Upload
+          </Link>
+        )}
       </div>
 
       <BrowseControls q={q} tag={tag} sort={sort} tags={tags} />
