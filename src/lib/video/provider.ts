@@ -1,58 +1,67 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
+import { muxPlaybackUrl } from "@/lib/video/mux";
 
-// Isolates provider-specific video hosting behind one module so swapping the
-// interim Supabase Storage stub for Mux/Cloudflare Stream only touches this
-// file (plus whatever webhook route the real provider needs). The shared
-// shape: the server creates an upload destination, the client PUTs the raw
-// file to it, and videos.video_asset_id stores the provider's asset ref.
+// Video hosting is per-row: `videos.provider` records which backend holds each
+// clip, so Mux and the legacy Supabase Storage stub coexist. New uploads go to
+// whichever provider VIDEO_PROVIDER selects; old rows keep playing on 'storage'.
 
-export interface UploadTarget {
-  /** Client PUTs the raw file body to this URL. */
-  url: string;
-  /** Provider asset reference to persist in videos.video_asset_id. */
-  assetId: string;
+export type VideoProviderName = "storage" | "mux";
+
+/** The provider new uploads should use. Defaults to storage until Mux is on. */
+export function activeProvider(): VideoProviderName {
+  return process.env.VIDEO_PROVIDER === "mux" ? "mux" : "storage";
 }
 
-export interface VideoProvider {
-  name: string;
-  /**
-   * Create a one-time upload destination. `path` is the desired object path
-   * for path-addressed providers (storage stub); Mux-style providers may
-   * ignore it and mint their own asset ids.
-   */
-  createUploadTarget(path: string): Promise<UploadTarget>;
-  /** Resolve a stored asset id to a playable URL. */
-  playbackUrl(assetId: string): string;
+/** A public URL a <video> element (storage) can play from a storage path. */
+export function storagePlaybackUrl(
+  supabase: SupabaseClient<Database>,
+  path: string
+): string {
+  return supabase.storage.from("videos").getPublicUrl(path).data.publicUrl;
 }
 
-function createStorageProvider(
-  supabase: SupabaseClient<Database>
-): VideoProvider {
-  return {
-    name: "supabase-storage",
-
-    async createUploadTarget(path) {
-      const { data, error } = await supabase.storage
-        .from("videos")
-        .createSignedUploadUrl(path);
-      if (error) throw error;
-      return { url: data.signedUrl, assetId: data.path };
-    },
-
-    playbackUrl(assetId) {
-      return supabase.storage.from("videos").getPublicUrl(assetId).data
-        .publicUrl;
-    },
-  };
+/** Create a signed one-time upload target for the storage stub. */
+export async function createStorageUploadTarget(
+  supabase: SupabaseClient<Database>,
+  path: string
+): Promise<{ url: string; assetId: string }> {
+  const { data, error } = await supabase.storage
+    .from("videos")
+    .createSignedUploadUrl(path);
+  if (error) throw error;
+  return { url: data.signedUrl, assetId: data.path };
 }
+
+/** Minimal shape needed to resolve a video's playable source. */
+export type PlayableVideo = {
+  provider: string;
+  playback_id: string | null;
+  video_asset_id: string | null;
+};
+
+export type Playback =
+  // `src` is an HLS manifest (needs hls.js off Safari); `file` is a direct URL.
+  | { kind: "mux"; src: string }
+  | { kind: "file"; src: string }
+  | { kind: "unavailable" };
 
 /**
- * The active provider. When Mux/Cloudflare Stream lands, switch on an env var
- * here (e.g. VIDEO_PROVIDER=mux) and return the real implementation.
+ * Resolve a row to how it should play. Mux rows stream HLS via their playback
+ * id; storage rows resolve to a public file URL. A Mux row still processing (no
+ * playback id yet) is "unavailable" — callers gate on status === 'processing'
+ * upstream, this just covers the brief window before the webhook lands.
  */
-export function getVideoProvider(
-  supabase: SupabaseClient<Database>
-): VideoProvider {
-  return createStorageProvider(supabase);
+export function resolvePlayback(
+  supabase: SupabaseClient<Database>,
+  video: PlayableVideo
+): Playback {
+  if (video.provider === "mux") {
+    return video.playback_id
+      ? { kind: "mux", src: muxPlaybackUrl(video.playback_id) }
+      : { kind: "unavailable" };
+  }
+  return video.video_asset_id
+    ? { kind: "file", src: storagePlaybackUrl(supabase, video.video_asset_id) }
+    : { kind: "unavailable" };
 }

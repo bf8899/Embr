@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { createUpload, finalizeUpload } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ACCEPTED_VIDEO_TYPES, MAX_VIDEO_BYTES } from "@/lib/video/constants";
+import { ACCEPTED_VIDEO_TYPES, maxUploadBytes } from "@/lib/video/constants";
+
+type Provider = "storage" | "mux";
 
 type Stage =
   | { name: "idle" }
@@ -13,13 +15,25 @@ type Stage =
   | { name: "processing" }
   | { name: "error"; message: string };
 
-function putToSignedUrl(url: string, body: Blob, onProgress?: (pct: number) => void) {
-  // Mirrors supabase-js uploadToSignedUrl (FormData PUT), but via XHR so we
-  // get upload progress events, which fetch doesn't expose.
+// XHR (not fetch) so we get upload progress events. `raw` sends the file body
+// directly (Mux direct uploads); otherwise it's wrapped in FormData to match
+// supabase-js uploadToSignedUrl (the storage stub).
+function putToSignedUrl(
+  url: string,
+  body: Blob,
+  raw: boolean,
+  onProgress?: (pct: number) => void
+) {
   return new Promise<void>((resolve, reject) => {
-    const form = new FormData();
-    form.append("cacheControl", "3600");
-    form.append("", body);
+    let payload: Blob | FormData;
+    if (raw) {
+      payload = body;
+    } else {
+      const form = new FormData();
+      form.append("cacheControl", "3600");
+      form.append("", body);
+      payload = form;
+    }
 
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", url);
@@ -33,11 +47,14 @@ function putToSignedUrl(url: string, body: Blob, onProgress?: (pct: number) => v
         ? resolve()
         : reject(new Error(`Upload failed (${xhr.status})`));
     xhr.onerror = () => reject(new Error("Upload failed — network error."));
-    xhr.send(form);
+    xhr.send(payload);
   });
 }
 
-async function readVideoMetadata(file: File): Promise<{
+async function readVideoMetadata(
+  file: File,
+  wantThumbnail: boolean
+): Promise<{
   durationSeconds: number;
   thumbnail: Blob | null;
 }> {
@@ -55,7 +72,7 @@ async function readVideoMetadata(file: File): Promise<{
     const durationSeconds = isFinite(video.duration) ? video.duration : 0;
 
     let thumbnail: Blob | null = null;
-    try {
+    if (wantThumbnail) try {
       video.currentTime = Math.min(1, durationSeconds / 2);
       await new Promise<void>((resolve, reject) => {
         video.onseeked = () => resolve();
@@ -78,18 +95,28 @@ async function readVideoMetadata(file: File): Promise<{
   }
 }
 
-export function UploadForm({ capSeconds }: { capSeconds: number }) {
+export function UploadForm({
+  capSeconds,
+  provider,
+}: {
+  capSeconds: number;
+  provider: Provider;
+}) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>({ name: "idle" });
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const busy = stage.name === "uploading" || stage.name === "processing";
+  const maxBytes = maxUploadBytes(provider);
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
-    if (f && f.size > MAX_VIDEO_BYTES) {
-      setStage({ name: "error", message: "That file is over the 50 MB cap." });
+    if (f && f.size > maxBytes) {
+      setStage({
+        name: "error",
+        message: `That file is over the ${Math.round(maxBytes / 1048576)} MB cap.`,
+      });
       setFile(null);
       e.target.value = "";
       return;
@@ -111,10 +138,11 @@ export function UploadForm({ capSeconds }: { capSeconds: number }) {
     try {
       setStage({ name: "uploading", percent: 0 });
 
-      const metadata = await readVideoMetadata(file).catch(() => ({
-        durationSeconds: 0,
-        thumbnail: null,
-      }));
+      // Mux generates thumbnails server-side, so only the storage path needs a
+      // client-drawn poster. Duration is read either way for the cap pre-check.
+      const metadata = await readVideoMetadata(file, provider === "storage").catch(
+        () => ({ durationSeconds: 0, thumbnail: null })
+      );
 
       // Friendly early stop before uploading; the server enforces this too.
       if (metadata.durationSeconds > capSeconds) {
@@ -140,15 +168,27 @@ export function UploadForm({ capSeconds }: { capSeconds: number }) {
         return;
       }
 
-      await putToSignedUrl(created.videoUploadUrl, file, (percent) =>
+      await putToSignedUrl(created.uploadUrl, file, created.provider === "mux", (percent) =>
         setStage({ name: "uploading", percent })
       );
+
+      if (created.provider === "mux") {
+        // Mux transcodes asynchronously; the asset.ready webhook flips the row
+        // live. Send the viewer to the watch page, which shows a processing
+        // state until then.
+        setStage({ name: "processing" });
+        router.push(`/v/${created.videoId}`);
+        return;
+      }
+
       if (metadata.thumbnail) {
-        await putToSignedUrl(created.thumbnailUploadUrl, metadata.thumbnail).catch(
-          () => {
-            metadata.thumbnail = null;
-          }
-        );
+        await putToSignedUrl(
+          created.thumbnailUploadUrl,
+          metadata.thumbnail,
+          false
+        ).catch(() => {
+          metadata.thumbnail = null;
+        });
       }
 
       setStage({ name: "processing" });

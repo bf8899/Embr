@@ -8,6 +8,7 @@ import { FollowButton } from "@/components/follow-button";
 import { TipButton } from "@/components/tip-button";
 import { WalletBadge } from "@/components/wallet";
 import { LiveChat } from "@/components/live-chat";
+import { HlsVideo } from "@/components/hls-video";
 
 export type FlowVideo = {
   id: string;
@@ -15,6 +16,7 @@ export type FlowVideo = {
   creatorId: string;
   handle: string;
   src: string;
+  hls: boolean;
   poster: string | null;
   likeCount: number;
   emberCount: number;
@@ -108,13 +110,14 @@ export function FlowFeed({
             key={v.id}
             className="relative flex h-full snap-start items-center justify-center"
           >
-            <video
+            <HlsVideo
               ref={(el) => {
                 videoRefs.current[i] = el;
               }}
+              src={v.src}
+              hls={v.hls}
               data-video-id={v.id}
               data-own={v.isOwn ? "true" : "false"}
-              src={v.src}
               poster={v.poster ?? undefined}
               muted={muted}
               loop

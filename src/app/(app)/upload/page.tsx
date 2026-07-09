@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireProfile } from "@/lib/supabase/dal";
 import { createClient } from "@/lib/supabase/server";
 import { getPlatformSettings, effectiveClipCap, canUpload } from "@/lib/clips";
+import { activeProvider } from "@/lib/video/provider";
 import { UploadForm } from "./form";
 
 export default async function UploadPage() {
@@ -48,15 +49,17 @@ export default async function UploadPage() {
   }
 
   const cap = effectiveClipCap(profile, settings);
+  const provider = activeProvider();
 
   return (
     <div className="mx-auto max-w-md">
       <h1 className="font-display text-2xl font-bold">Upload a video</h1>
       <p className="mt-1 text-sm text-ink-dim">
-        MP4, WebM, or MOV — up to 50 MB, {cap} seconds max while we&apos;re on the
-        starter pipeline.
+        MP4, WebM, or MOV — {cap} seconds max
+        {provider === "storage" ? ", up to 50 MB" : ""}. We&apos;ll transcode it
+        {provider === "mux" ? " and it goes live once processing finishes" : ""}.
       </p>
-      <UploadForm capSeconds={cap} />
+      <UploadForm capSeconds={cap} provider={provider} />
     </div>
   );
 }

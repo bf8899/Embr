@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/dal";
-import { getVideoProvider } from "@/lib/video/provider";
+import { resolvePlayback } from "@/lib/video/provider";
 import {
   getViewerEngagement,
   buildTagWeights,
@@ -17,7 +17,6 @@ export default async function FlowPage({
   searchParams: Promise<{ q?: string; tag?: string; sort?: string }>;
 }) {
   const supabase = await createClient();
-  const provider = getVideoProvider(supabase);
   const user = await getCurrentUser();
   const { q, tag, sort } = await searchParams;
 
@@ -65,19 +64,26 @@ export default async function FlowPage({
     (followingRes.data ?? []).map((r) => r.creator_id)
   );
 
-  const feed: FlowVideo[] = videos.map((v) => ({
-    id: v.id,
-    title: v.title,
-    creatorId: v.creator_id,
-    handle: v.profiles?.handle ?? "unknown",
-    src: provider.playbackUrl(v.video_asset_id),
-    poster: v.thumbnail_url,
-    likeCount: v.like_count,
-    emberCount: v.ember_count,
-    liked: likedSet.has(v.id),
-    following: followingSet.has(v.creator_id),
-    isOwn: user?.id === v.creator_id,
-  }));
+  const feed: FlowVideo[] = videos
+    .map((v) => {
+      const playback = resolvePlayback(supabase, v);
+      if (playback.kind === "unavailable") return null;
+      return {
+        id: v.id,
+        title: v.title,
+        creatorId: v.creator_id,
+        handle: v.profiles?.handle ?? "unknown",
+        src: playback.src,
+        hls: playback.kind === "mux",
+        poster: v.thumbnail_url,
+        likeCount: v.like_count,
+        emberCount: v.ember_count,
+        liked: likedSet.has(v.id),
+        following: followingSet.has(v.creator_id),
+        isOwn: user?.id === v.creator_id,
+      };
+    })
+    .filter((v): v is FlowVideo => v !== null);
 
   if (feed.length === 0) {
     return (

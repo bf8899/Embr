@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/dal";
-import { getVideoProvider } from "@/lib/video/provider";
+import { resolvePlayback } from "@/lib/video/provider";
+import { HlsVideo } from "@/components/hls-video";
 import { formatDuration, formatViews } from "@/lib/format";
 import type { VideoWithCreator } from "@/components/video-tile";
 import { LikeButton } from "@/components/like-button";
@@ -38,7 +39,11 @@ export default async function WatchPage({
   const user = await getCurrentUser();
   const isOwner = user?.id === video.creator_id;
 
-  if (video.status === "processing") {
+  const playback = resolvePlayback(supabase, video);
+
+  // Mux transcodes asynchronously, so a just-uploaded clip has no playable
+  // source until its webhook lands — treat that the same as 'processing'.
+  if (video.status === "processing" || playback.kind === "unavailable") {
     return (
       <div className="mx-auto max-w-3xl text-center">
         <div className="grid aspect-video place-items-center rounded-[22px] border border-line bg-pane text-ink-dim">
@@ -49,8 +54,6 @@ export default async function WatchPage({
     );
   }
 
-  const provider = getVideoProvider(supabase);
-  const src = provider.playbackUrl(video.video_asset_id);
   const duration = formatDuration(video.duration_seconds);
 
   // Social state for the signed-in viewer + the comment thread + tip data.
@@ -106,11 +109,12 @@ export default async function WatchPage({
       {!isOwner && <ViewPing videoId={video.id} />}
       <LiveChat videoId={video.id} userId={user?.id ?? null} />
 
-      <video
+      <HlsVideo
+        src={playback.src}
+        hls={playback.kind === "mux"}
         controls
         playsInline
         poster={video.thumbnail_url ?? undefined}
-        src={src}
         className="aspect-video w-full rounded-[22px] border border-line bg-black"
       />
 

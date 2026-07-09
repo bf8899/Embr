@@ -608,11 +608,14 @@ export type Database = {
           ember_count: number
           id: string
           like_count: number
+          mux_upload_id: string | null
+          playback_id: string | null
+          provider: string
           status: Database["public"]["Enums"]["video_status"]
           tags: string[]
           thumbnail_url: string | null
           title: string
-          video_asset_id: string
+          video_asset_id: string | null
           view_count: number
         }
         Insert: {
@@ -623,11 +626,14 @@ export type Database = {
           ember_count?: number
           id?: string
           like_count?: number
+          mux_upload_id?: string | null
+          playback_id?: string | null
+          provider?: string
           status?: Database["public"]["Enums"]["video_status"]
           tags?: string[]
           thumbnail_url?: string | null
           title: string
-          video_asset_id: string
+          video_asset_id?: string | null
           view_count?: number
         }
         Update: {
@@ -638,11 +644,14 @@ export type Database = {
           ember_count?: number
           id?: string
           like_count?: number
+          mux_upload_id?: string | null
+          playback_id?: string | null
+          provider?: string
           status?: Database["public"]["Enums"]["video_status"]
           tags?: string[]
           thumbnail_url?: string | null
           title?: string
-          video_asset_id?: string
+          video_asset_id?: string | null
           view_count?: number
         }
         Relationships: [
