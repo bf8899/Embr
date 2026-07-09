@@ -6,7 +6,7 @@ export default async function OnboardingPage() {
   const profile = await requireProfile();
 
   if (profile.onboarded) {
-    redirect("/");
+    redirect("/browse");
   }
 
   return (

@@ -39,7 +39,7 @@ export default async function UploadPage() {
           you&apos;ll be able to post as soon as we open the doors.
         </p>
         <p className="mt-4 text-sm">
-          <Link href="/" className="text-ink-dim hover:text-ink">
+          <Link href="/browse" className="text-ink-dim hover:text-ink">
             ← Back to browse
           </Link>
         </p>

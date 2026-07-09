@@ -85,7 +85,7 @@ export default async function FlowPage({
         <div>
           <p className="text-ink-dim">No videos to flow through yet.</p>
           <Link
-            href="/"
+            href="/browse"
             className="mt-4 inline-block text-sm text-ink underline underline-offset-4"
           >
             Back to browse

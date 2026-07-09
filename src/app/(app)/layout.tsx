@@ -11,7 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const header = (
     <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line px-4 py-3 sm:px-6 sm:py-4">
       <Link
-        href="/"
+        href="/browse"
         className="font-display text-base font-extrabold tracking-[0.14em] bg-[image:var(--ember-grad)] bg-clip-text text-transparent"
       >
         EMBER
@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {profile ? (
         <>
           <nav className="flex items-center gap-3 text-sm text-ink-dim sm:gap-4">
-            <Link href="/" className="hover:text-ink">
+            <Link href="/browse" className="hover:text-ink">
               Browse
             </Link>
             <Link href="/leaderboard" className="hover:text-ink">

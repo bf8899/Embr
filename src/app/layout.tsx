@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Syne, Instrument_Sans } from "next/font/google";
+import { Syne, Instrument_Sans, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
 import { EmberBackground } from "@/components/ember-background";
@@ -12,6 +12,11 @@ const syne = Syne({
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
+  subsets: ["latin"],
+});
+
+const splineMono = Spline_Sans_Mono({
+  variable: "--font-spline-mono",
   subsets: ["latin"],
 });
 
@@ -28,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${syne.variable} ${instrumentSans.variable} h-full antialiased`}
+      className={`${syne.variable} ${instrumentSans.variable} ${splineMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <EmberBackground />

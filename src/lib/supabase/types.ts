@@ -269,6 +269,71 @@ export type Database = {
           },
         ]
       }
+      creator_requests: {
+        Row: {
+          about: string | null
+          channel_url: string
+          created_at: string
+          email: string
+          follower_count: number | null
+          id: string
+          invite_code: string | null
+          name: string
+          platform: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          verification_code: string
+          verified: boolean
+          verified_at: string | null
+        }
+        Insert: {
+          about?: string | null
+          channel_url: string
+          created_at?: string
+          email: string
+          follower_count?: number | null
+          id?: string
+          invite_code?: string | null
+          name: string
+          platform: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          verification_code: string
+          verified?: boolean
+          verified_at?: string | null
+        }
+        Update: {
+          about?: string | null
+          channel_url?: string
+          created_at?: string
+          email?: string
+          follower_count?: number | null
+          id?: string
+          invite_code?: string | null
+          name?: string
+          platform?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          verification_code?: string
+          verified?: boolean
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -622,6 +687,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_review_creator: {
+        Args: { p_id: string; p_note?: string; p_status: string }
+        Returns: string
+      }
       admin_set_admin: {
         Args: { p_is_admin: boolean; p_user_id: string }
         Returns: undefined
@@ -629,6 +698,10 @@ export type Database = {
       admin_set_beta_mode: { Args: { p_on: boolean }; Returns: undefined }
       admin_set_creator_cap: {
         Args: { p_seconds: number; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_creator_verified: {
+        Args: { p_id: string; p_verified: boolean }
         Returns: undefined
       }
       admin_set_ember_balance: {
@@ -700,6 +773,17 @@ export type Database = {
       send_tip: {
         Args: { p_amount: number; p_comment_id?: string; p_video_id?: string }
         Returns: number
+      }
+      submit_creator_request: {
+        Args: {
+          p_about: string
+          p_channel_url: string
+          p_email: string
+          p_follower_count: number
+          p_name: string
+          p_platform: string
+        }
+        Returns: string
       }
       top_creators_leaderboard: {
         Args: { p_limit?: number }

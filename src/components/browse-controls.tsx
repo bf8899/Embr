@@ -8,7 +8,7 @@ function href(base: Params, override: Params): string {
   const sp = new URLSearchParams();
   for (const [k, v] of Object.entries(merged)) if (v) sp.set(k, v);
   const qs = sp.toString();
-  return qs ? `/?${qs}` : "/";
+  return qs ? `/browse?${qs}` : "/browse";
 }
 
 const seg = "rounded-full px-4 py-1.5 transition";
@@ -28,7 +28,7 @@ export function BrowseControls({
     <div className="mt-6 flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
         <form
-          action="/"
+          action="/browse"
           method="get"
           className="min-w-[200px] flex-1 sm:max-w-sm"
         >

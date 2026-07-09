@@ -33,5 +33,5 @@ export async function login(
     return { message: error.message };
   }
 
-  redirect("/");
+  redirect("/browse");
 }

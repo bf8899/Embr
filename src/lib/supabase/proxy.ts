@@ -1,10 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Content-first: browse/watch/flow and the marketing page are public. Only
-// these prefixes require a session — everything else (incl. "/", "/v/*",
-// "/flow", "/welcome", "/api/track") is open to anonymous visitors.
-const GATED_PREFIXES = ["/profile", "/upload", "/onboarding", "/admin"];
+// Pre-launch gate: the public only sees the creator landing ("/"), auth, and
+// API routes (which self-authorize). Everything else — browse, watch, flow,
+// leaderboard, profile, upload, admin — requires a session until launch.
+const PUBLIC_EXACT = new Set(["/", "/login", "/signup", "/auth/confirm"]);
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -36,11 +36,9 @@ export async function updateSession(request: NextRequest) {
   const claims = data?.claims;
 
   const path = request.nextUrl.pathname;
-  const isGated = GATED_PREFIXES.some(
-    (p) => path === p || path.startsWith(p + "/")
-  );
+  const isPublic = PUBLIC_EXACT.has(path) || path.startsWith("/api/");
 
-  if (!claims && isGated) {
+  if (!claims && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -48,7 +46,7 @@ export async function updateSession(request: NextRequest) {
 
   if (claims && (path === "/login" || path === "/signup")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/browse";
     return NextResponse.redirect(url);
   }
 

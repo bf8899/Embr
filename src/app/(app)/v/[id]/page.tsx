@@ -179,7 +179,7 @@ export default async function WatchPage({
           {video.tags.map((tag) => (
             <Link
               key={tag}
-              href={`/?tag=${encodeURIComponent(tag)}`}
+              href={`/browse?tag=${encodeURIComponent(tag)}`}
               className="rounded-full border border-line px-3 py-1 text-xs text-ink-dim transition hover:border-ember-2/40 hover:text-ember-2"
             >
               #{tag}
@@ -198,7 +198,7 @@ export default async function WatchPage({
       />
 
       <div className="mt-8 flex items-center justify-between">
-        <Link href="/" className="text-sm text-ink-dim hover:text-ink">
+        <Link href="/browse" className="text-sm text-ink-dim hover:text-ink">
           ← Back to browse
         </Link>
         {user && !isOwner && (
