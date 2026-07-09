@@ -11,6 +11,8 @@ import {
 import { VideoTile, type VideoWithCreator } from "@/components/video-tile";
 import { BrowseControls } from "@/components/browse-controls";
 import { FlameMark } from "@/components/flame-mark";
+import { AdSlot } from "@/components/ad-slot";
+import { getPlatformSettings } from "@/lib/clips";
 
 // Most common tags across a snapshot of live videos, for the quick-filter chips.
 function popularTags(rows: { tags: string[] }[], limit = 8): string[] {
@@ -46,9 +48,10 @@ export default async function BrowsePage({
   if (term) query = query.ilike("title", `%${term}%`);
   if (tag) query = query.contains("tags", [tag]);
 
-  const [videosRes, tagPoolRes] = await Promise.all([
+  const [videosRes, tagPoolRes, settings] = await Promise.all([
     query.order("created_at", { ascending: false }).limit(48),
     supabase.from("videos").select("tags").eq("status", "live").limit(100),
+    getPlatformSettings(supabase),
   ]);
 
   let tiles = (videosRes.data ?? []) as VideoWithCreator[];
@@ -120,9 +123,18 @@ export default async function BrowsePage({
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {tiles.map((video) => (
-            <VideoTile key={video.id} video={video} />
-          ))}
+          {tiles.map((video, i) => {
+            const cells = [<VideoTile key={video.id} video={video} />];
+            // One ad card per `ad_frequency` tiles — never leading or trailing.
+            if (
+              settings.ads_enabled &&
+              (i + 1) % settings.ad_frequency === 0 &&
+              i + 1 < tiles.length
+            ) {
+              cells.push(<AdSlot key={`ad-${i}`} variant="card" />);
+            }
+            return cells;
+          })}
         </div>
       )}
     </div>

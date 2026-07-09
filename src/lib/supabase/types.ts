@@ -402,6 +402,8 @@ export type Database = {
       }
       platform_settings: {
         Row: {
+          ad_frequency: number
+          ads_enabled: boolean
           beta_mode: boolean
           creator_uploads_open: boolean
           default_clip_seconds: number
@@ -410,6 +412,8 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          ad_frequency?: number
+          ads_enabled?: boolean
           beta_mode?: boolean
           creator_uploads_open?: boolean
           default_clip_seconds?: number
@@ -418,6 +422,8 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          ad_frequency?: number
+          ads_enabled?: boolean
           beta_mode?: boolean
           creator_uploads_open?: boolean
           default_clip_seconds?: number
@@ -702,6 +708,10 @@ export type Database = {
       }
       admin_set_admin: {
         Args: { p_is_admin: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      admin_set_ads: {
+        Args: { p_enabled: boolean; p_frequency: number }
         Returns: undefined
       }
       admin_set_beta_mode: { Args: { p_on: boolean }; Returns: undefined }

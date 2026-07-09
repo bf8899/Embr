@@ -295,7 +295,9 @@ export function CreatorLanding() {
           Ember is a video platform where viewers reward creators directly through
           embers — a tip gesture of appreciation.
         </div>
-        <div>e-mbr.uk</div>
+        <div>
+          <a href="/privacy">Privacy</a> · e-mbr.uk
+        </div>
       </footer>
     </div>
   );

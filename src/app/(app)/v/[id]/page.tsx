@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/dal";
 import { resolvePlayback } from "@/lib/video/provider";
 import { HlsVideo } from "@/components/hls-video";
+import { AdSlot } from "@/components/ad-slot";
+import { getPlatformSettings } from "@/lib/clips";
 import { formatDuration, formatViews } from "@/lib/format";
 import type { VideoWithCreator } from "@/components/video-tile";
 import { LikeButton } from "@/components/like-button";
@@ -57,8 +59,15 @@ export default async function WatchPage({
   const duration = formatDuration(video.duration_seconds);
 
   // Social state for the signed-in viewer + the comment thread + tip data.
-  const [likeRes, followRes, commentsRes, followerCountRes, leaderRes, commentTipsRes] =
-    await Promise.all([
+  const [
+    likeRes,
+    followRes,
+    commentsRes,
+    followerCountRes,
+    leaderRes,
+    commentTipsRes,
+    settings,
+  ] = await Promise.all([
       user
         ? supabase
             .from("likes")
@@ -90,6 +99,7 @@ export default async function WatchPage({
         .select("comment_id, amount")
         .eq("video_id", video.id)
         .not("comment_id", "is", null),
+      getPlatformSettings(supabase),
     ]);
 
   const liked = !!likeRes.data;
@@ -189,6 +199,12 @@ export default async function WatchPage({
               #{tag}
             </Link>
           ))}
+        </div>
+      )}
+
+      {settings.ads_enabled && (
+        <div className="mt-6">
+          <AdSlot variant="inline" />
         </div>
       )}
 

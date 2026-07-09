@@ -78,6 +78,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       )}
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-10">{children}</main>
+      <footer className="border-t border-line px-4 py-6 text-center text-xs text-ink-faint sm:px-6">
+        <Link href="/privacy" className="hover:text-ink-dim">
+          Privacy
+        </Link>{" "}
+        · Ember · e-mbr.uk
+      </footer>
     </div>
   );
 

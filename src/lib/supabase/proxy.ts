@@ -4,7 +4,13 @@ import { NextResponse, type NextRequest } from "next/server";
 // Pre-launch gate: the public only sees the creator landing ("/"), auth, and
 // API routes (which self-authorize). Everything else — browse, watch, flow,
 // leaderboard, profile, upload, admin — requires a session until launch.
-const PUBLIC_EXACT = new Set(["/", "/login", "/signup", "/auth/confirm"]);
+const PUBLIC_EXACT = new Set([
+  "/",
+  "/login",
+  "/signup",
+  "/auth/confirm",
+  "/privacy",
+]);
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
